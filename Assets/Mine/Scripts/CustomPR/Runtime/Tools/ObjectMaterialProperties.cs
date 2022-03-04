@@ -8,7 +8,7 @@ public class ObjectMaterialProperties : MonoBehaviour
     [SerializeField]
     Color baseColor = Color.white;
     [SerializeField, Range(0f, 1f)]
-    float cutoff = 0.5f;
+    float cutoff = 0.5f, metallic = 0f, smoothness = 0f;
 
     static MaterialPropertyBlock block;
 
@@ -25,6 +25,8 @@ public class ObjectMaterialProperties : MonoBehaviour
         }
         block.SetColor(CommonShaderPropertyID.baseColorId, baseColor);
         block.SetFloat(CommonShaderPropertyID.cutoffId, cutoff);
+        block.SetFloat(CommonShaderPropertyID.metallicId, metallic);
+        block.SetFloat(CommonShaderPropertyID.smoothnessId, smoothness);
         GetComponent<Renderer>().SetPropertyBlock(block);
     }
 }

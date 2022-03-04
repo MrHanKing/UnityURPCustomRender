@@ -5,7 +5,10 @@
 struct Surface{
     float3 normal;
     float3 color;
+    float3 viewDirection;// 视野方向 指向相机
     float alpha;
+    float metallic;
+    float smoothness;
 };
 
 #endif

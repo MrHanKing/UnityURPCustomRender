@@ -17,4 +17,8 @@ public static class CommonShaderPropertyID
     public static int dirLightColorsId = Shader.PropertyToID("_DirectionalLightColors");
     // 定向光方向 原点指向光
     public static int dirLightDirectionsId = Shader.PropertyToID("_DirectionalLightDirections");
+    // 金属度
+    public static int metallicId = Shader.PropertyToID("_Metallic");
+    // 光滑度
+    public static int smoothnessId = Shader.PropertyToID("_Smoothness");
 }
