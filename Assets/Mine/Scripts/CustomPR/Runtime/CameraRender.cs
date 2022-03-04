@@ -21,7 +21,7 @@ public partial class CameraRender
     };
     private CullingResults cullingResults;
 
-    public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing)
+    public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing, ShadowSettings shadowSettings)
     {
         this.context = context;
         this.camera = camera;
@@ -30,13 +30,17 @@ public partial class CameraRender
         // 显式添加UI渲染 必须在剔除之前
         PrepareForSceneWindow();
         // check
-        if (!Cull())
+        if (!Cull(shadowSettings.maxDistance))
         {
             return;
         }
+        // 先阴影 再相机
+        buffer.BeginSample(SampleName);
+        ExecuteBuffer();
+        lighting.Setup(context, cullingResults, shadowSettings);
+        buffer.EndSample(SampleName);
 
         Setup();
-        lighting.Setup(context, cullingResults);
 
         DrawOpaque(useDynamicBatching, useGPUInstancing);
         DrawSkybox();
@@ -44,6 +48,7 @@ public partial class CameraRender
         DrawUnsupportedShaders();
         DrawGizmos();
 
+        lighting.Cleanup();
         Submit();
     }
     /// <summary>
@@ -126,11 +131,12 @@ public partial class CameraRender
     }
 
     // 获取视野内几何体
-    private bool Cull()
+    private bool Cull(float maxShadowDistance)
     {
         ScriptableCullingParameters p;
         if (camera.TryGetCullingParameters(out p))
         {
+            p.shadowDistance = Mathf.Min(maxShadowDistance, camera.farClipPlane);
             cullingResults = context.Cull(ref p);
             return true;
         }

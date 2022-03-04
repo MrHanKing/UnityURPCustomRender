@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: CustomPR_LitShader 1
   m_Shader: {fileID: 4800000, guid: 727d16b147d7d44f6a47739340d9dbf4, type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: _PREMULTI_ALPHA
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -25,12 +25,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _Clipping: 0
-    - _Cutoff: 0
+    - _Cutoff: 0.21
     - _DstBlend: 10
     - _Metallic: 0
-    - _PremulAlpha: 0
+    - _PremulAlpha: 1
     - _Smoothness: 0.743
-    - _SrcBlend: 5
-    - _ZWrite: 1
+    - _SrcBlend: 1
+    - _ZWrite: 0
     m_Colors:
-    - _BaseColor: {r: 1, g: 0.19339615, b: 0.19339615, a: 1}
+    - _BaseColor: {r: 1, g: 0.19339612, b: 0.19339612, a: 1}

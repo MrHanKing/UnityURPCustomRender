@@ -21,4 +21,6 @@ public static class CommonShaderPropertyID
     public static int metallicId = Shader.PropertyToID("_Metallic");
     // 光滑度
     public static int smoothnessId = Shader.PropertyToID("_Smoothness");
+    // 定向光阴影贴图
+    public static int dirShadowAtlasId = Shader.PropertyToID("_DirctionalShadowAtlas");
 }

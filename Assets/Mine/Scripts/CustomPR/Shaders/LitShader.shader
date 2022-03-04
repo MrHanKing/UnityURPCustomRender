@@ -16,16 +16,16 @@
     }
     SubShader
     {
-        Tags { 
-            // "RenderType"="Opaque" 
-            "LightMode" = "CustomLit"
-        }
-        // LOD 100
-        Blend [_SrcBlend] [_DstBlend]
-        ZWrite [_ZWrite]
-
         Pass
         {
+            Tags { 
+                // "RenderType"="Opaque" 
+                "LightMode" = "CustomLit"
+            }
+            // LOD 100
+            Blend [_SrcBlend] [_DstBlend]
+            ZWrite [_ZWrite]
+
             HLSLPROGRAM
             // 着色器通道的目标级别 避免为它们编译 OpenGL ES 2.0 着色器变体 因为Light里面有循环 老式硬件性能低
             #pragma target 3.5
@@ -36,6 +36,25 @@
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
             #include "LitPass.hlsl"
+            ENDHLSL
+        }
+        
+        Pass
+        {
+            Tags {
+                "LightMode" = "ShadowCaster"
+            }
+
+            // 只写深度 不写颜色 一个通道就够了
+            ColorMask 0
+
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma shader_feature _CLIPPING
+            #pragma shader_feature _PREMULTI_ALPHA
+            #pragma vertex ShadowCasterPassVertex
+            #pragma fragment ShadowCasterPassFragment
+            #include "ShadowCasterPass.hlsl"
             ENDHLSL
         }
     }
