@@ -17,10 +17,14 @@ float OneMinusReflect(float metallic){
     return rangeMax - metallic * rangeMax;
 }
 
-BRDF GetBRDF(Surface surface){
+// applyAlphaToDiffuse 将alpha应用于漫反射
+BRDF GetBRDF(Surface surface, bool applyAlphaToDiffuse = false){
     BRDF brdf;
     // 金属度越大 镜面反射越强 漫反射越弱
 	brdf.diffuse = surface.color * OneMinusReflect(surface.metallic);
+    if(applyAlphaToDiffuse){
+        brdf.diffuse *= surface.alpha;
+    }
     // 金属度越高 镜面反射颜色越靠近金属颜色 非金属是白色
 	brdf.specular = lerp(MIN_REFLECT_VALUE, surface.color, surface.metallic);
     // smoothness to perceptualRoughness 匹配迪士尼照明模型

@@ -68,8 +68,9 @@ Material:
     - _AlphaClip: 0
     - _Blend: 0
     - _BumpScale: 1
+    - _Clipping: 0
     - _Cull: 2
-    - _Cutoff: 0
+    - _Cutoff: 0.477
     - _DetailNormalMapScale: 1
     - _DstBlend: 10
     - _EnvironmentReflections: 1

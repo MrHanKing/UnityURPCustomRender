@@ -12,6 +12,7 @@
 
         _Metallic("金属度", Range(0.0, 1.0)) = 0
         _Smoothness("光滑度", Range(0.0, 1.0)) = 0
+        [Toggle(_PREMULTI_ALPHA)] _PremulAlpha ("是否预乘alpha", Float) = 0
     }
     SubShader
     {
@@ -30,6 +31,7 @@
             #pragma target 3.5
             // 关键字分支
             #pragma shader_feature _CLIPPING
+            #pragma shader_feature _PREMULTI_ALPHA
             #pragma multi_compile_instancing
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
@@ -37,4 +39,6 @@
             ENDHLSL
         }
     }
+
+    CustomEditor "CustomLitShaderGUI"
 }
