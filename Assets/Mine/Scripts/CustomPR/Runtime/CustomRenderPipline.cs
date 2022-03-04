@@ -6,17 +6,19 @@ using UnityEngine.Rendering;
 public class CustomRenderPipline : RenderPipeline
 {
     private CameraRender render = new CameraRender();
-
-    public CustomRenderPipline()
+    private bool useDynamicBatching, useGPUInstancing;
+    public CustomRenderPipline(bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatcher)
     {
         // 开启SRP的批处理器
-        GraphicsSettings.useScriptableRenderPipelineBatching = true;
+        GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
+        this.useDynamicBatching = useDynamicBatching;
+        this.useGPUInstancing = useGPUInstancing;
     }
     protected override void Render(ScriptableRenderContext context, Camera[] cameras)
     {
         foreach (var camera in cameras)
         {
-            render.Render(context, camera);
+            render.Render(context, camera, useDynamicBatching, useGPUInstancing);
         }
     }
 }

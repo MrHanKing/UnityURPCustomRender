@@ -9,4 +9,5 @@ public static class CommonShaderPropertyID
 {
     // 基础色
     public static int baseColorId = Shader.PropertyToID("_BaseColor");
+    public static int cutoffId = Shader.PropertyToID("_Cutoff");
 }

@@ -18,7 +18,7 @@ public partial class CameraRender
     };
     private CullingResults cullingResults;
 
-    public void Render(ScriptableRenderContext context, Camera camera)
+    public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing)
     {
         this.context = context;
         this.camera = camera;
@@ -34,9 +34,9 @@ public partial class CameraRender
 
         Setup();
 
-        DrawOpaque();
+        DrawOpaque(useDynamicBatching, useGPUInstancing);
         DrawSkybox();
-        DrawTransparent();
+        DrawTransparent(useDynamicBatching, useGPUInstancing);
         DrawUnsupportedShaders();
         DrawGizmos();
 
@@ -61,13 +61,17 @@ public partial class CameraRender
 
     }
 
-    private void DrawOpaque()
+    private void DrawOpaque(bool useDynamicBatching, bool useGPUInstancing)
     {
         var sortingSettings = new SortingSettings(camera)
         {
             criteria = SortingCriteria.CommonOpaque
         };
-        var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings);
+        var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings)
+        {
+            enableDynamicBatching = useDynamicBatching,
+            enableInstancing = useGPUInstancing
+        };
         var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
         context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
     }
@@ -80,13 +84,18 @@ public partial class CameraRender
         context.DrawSkybox(camera);
     }
 
-    private void DrawTransparent()
+    private void DrawTransparent(bool useDynamicBatching, bool useGPUInstancing)
     {
         var sortingSettings = new SortingSettings(camera)
         {
             criteria = SortingCriteria.CommonTransparent
         };
-        var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings);
+        // Todo 优化
+        var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings)
+        {
+            enableDynamicBatching = useDynamicBatching,
+            enableInstancing = useGPUInstancing
+        };
         var filteringSettings = new FilteringSettings(RenderQueueRange.transparent);
         context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
     }

@@ -7,6 +7,9 @@ public class ObjectMaterialProperties : MonoBehaviour
 {
     [SerializeField]
     Color baseColor = Color.white;
+    [SerializeField, Range(0f, 1f)]
+    float cutoff = 0.5f;
+
     static MaterialPropertyBlock block;
 
     private void Awake()
@@ -21,6 +24,7 @@ public class ObjectMaterialProperties : MonoBehaviour
             block = new MaterialPropertyBlock();
         }
         block.SetColor(CommonShaderPropertyID.baseColorId, baseColor);
+        block.SetFloat(CommonShaderPropertyID.cutoffId, cutoff);
         GetComponent<Renderer>().SetPropertyBlock(block);
     }
 }
