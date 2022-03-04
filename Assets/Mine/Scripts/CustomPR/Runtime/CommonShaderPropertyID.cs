@@ -9,5 +9,12 @@ public static class CommonShaderPropertyID
 {
     // 基础色
     public static int baseColorId = Shader.PropertyToID("_BaseColor");
+    // 裁剪阈值
     public static int cutoffId = Shader.PropertyToID("_Cutoff");
+    // 复数定向光
+    public static int dirLightCountId = Shader.PropertyToID("_DirectionalLightCount");
+    // 定向光颜色
+    public static int dirLightColorsId = Shader.PropertyToID("_DirectionalLightColors");
+    // 定向光方向 原点指向光
+    public static int dirLightDirectionsId = Shader.PropertyToID("_DirectionalLightDirections");
 }

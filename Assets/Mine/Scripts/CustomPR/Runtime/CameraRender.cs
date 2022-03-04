@@ -6,12 +6,15 @@ public partial class CameraRender
     #region 常量
     const string bufferName = "Render Camera";
     static ShaderTagId unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit");
+    // 跟shader中的tag匹配
+    static ShaderTagId litShaderTagId = new ShaderTagId("CustomLit");
 
     #endregion
 
     // 上下文
     private ScriptableRenderContext context;
     private Camera camera;
+    private Lighting lighting = new Lighting();
     private CommandBuffer buffer = new CommandBuffer()
     {
         name = bufferName
@@ -33,6 +36,7 @@ public partial class CameraRender
         }
 
         Setup();
+        lighting.Setup(context, cullingResults);
 
         DrawOpaque(useDynamicBatching, useGPUInstancing);
         DrawSkybox();
@@ -67,11 +71,9 @@ public partial class CameraRender
         {
             criteria = SortingCriteria.CommonOpaque
         };
-        var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings)
-        {
-            enableDynamicBatching = useDynamicBatching,
-            enableInstancing = useGPUInstancing
-        };
+        var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings);
+        PrepareDrawingSetting(useDynamicBatching, useGPUInstancing, ref drawingSettings);
+
         var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
         context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
     }
@@ -90,14 +92,21 @@ public partial class CameraRender
         {
             criteria = SortingCriteria.CommonTransparent
         };
-        // Todo 优化
-        var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings)
-        {
-            enableDynamicBatching = useDynamicBatching,
-            enableInstancing = useGPUInstancing
-        };
+
+        var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings);
+        PrepareDrawingSetting(useDynamicBatching, useGPUInstancing, ref drawingSettings);
+
         var filteringSettings = new FilteringSettings(RenderQueueRange.transparent);
         context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
+    }
+
+    // 绘制设置的公共处理
+    private void PrepareDrawingSetting(bool useDynamicBatching, bool useGPUInstancing, ref DrawingSettings drawingSettings)
+    {
+        drawingSettings.enableDynamicBatching = useDynamicBatching;
+        drawingSettings.enableInstancing = useGPUInstancing;
+
+        drawingSettings.SetShaderPassName(1, litShaderTagId);
     }
 
     /// <summary>
