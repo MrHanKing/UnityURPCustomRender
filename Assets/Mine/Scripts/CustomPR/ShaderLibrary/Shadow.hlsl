@@ -26,6 +26,7 @@ struct ShadowData{
 struct DirectionalShadowData{
 	float strength; // 阴影强度
 	int tileIndex; // 阴影的纹理区域Index
+	float normalBias; // 阴影法线偏移
 };
 
 // 淡出阴影强度
@@ -77,7 +78,7 @@ float GetDirectionalShadowAttenuation(DirectionalShadowData shadowData, ShadowDa
 		return 1.0;
 	}
 	// 偏移采样
-	float3 normalBias = surfaceWS.normal * _ShadowCascadeData[globalShadow.cascadeIndex].y;
+	float3 normalBias = surfaceWS.normal * (shadowData.normalBias * _ShadowCascadeData[globalShadow.cascadeIndex].y);
 	float4 getPos = float4(surfaceWS.position + normalBias, 1.0);
 	float3 positionSTS = mul(_DirShadowMatris[shadowData.tileIndex], getPos).xyz;
 	float shadow = SampleDirectionalShadowAtlas(positionSTS);

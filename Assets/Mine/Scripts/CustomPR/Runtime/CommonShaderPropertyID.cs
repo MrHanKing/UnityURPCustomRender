@@ -17,7 +17,7 @@ public static class CommonShaderPropertyID
     public static int dirLightColorsId = Shader.PropertyToID("_DirectionalLightColors");
     // 定向光方向 原点指向光
     public static int dirLightDirectionsId = Shader.PropertyToID("_DirectionalLightDirections");
-    // 定向光阴影数据(如阴影强度等)
+    // 定向光阴影数据(如阴影强度等) z: 阴影法线偏移
     public static int dirLightShadowDatasId = Shader.PropertyToID("_DirLightShadowDatas");
 
     // 金属度

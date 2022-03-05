@@ -10,6 +10,8 @@ public class Shadows
     {
         // 光的索引映射
         public int visibleLightIndex;
+        // 斜率缩放偏移 微调阴影
+        public float slopeScaleBias;
     }
     #endregion
 
@@ -66,7 +68,7 @@ public class Shadows
     /// </summary>
     /// <param name="light"></param>
     /// <param name="visibleLightIndex"></param>
-    public Vector2 ReserveDirectionalShadows(Light light, int visibleLightIndex)
+    public Vector3 ReserveDirectionalShadows(Light light, int visibleLightIndex)
     {
         if (currentShadowDirectionalLightCount < maxShadowDirectionalLightCount &&
             !IgnoreShadow(light) &&
@@ -75,16 +77,17 @@ public class Shadows
         {
             shadowDirectionalLights[currentShadowDirectionalLightCount] = new ShadowDirectionalLight()
             {
-                visibleLightIndex = visibleLightIndex
+                visibleLightIndex = visibleLightIndex,
+                slopeScaleBias = light.shadowBias
             };
 
-            var result = new Vector2(light.shadowStrength, currentShadowDirectionalLightCount * maxShadowCascades);
+            var result = new Vector3(light.shadowStrength, currentShadowDirectionalLightCount * maxShadowCascades, light.shadowNormalBias);
 
             currentShadowDirectionalLightCount += 1;
             return result;
         }
 
-        return Vector2.zero;
+        return Vector3.zero;
     }
 
     public void Cleanup()
@@ -160,8 +163,11 @@ public class Shadows
 
             dirShadowMatris[tileIndex] = ConvertToAtlasMatrix(projectionMatrix * viewMatrix, offset, split);
             buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+
+            buffer.SetGlobalDepthBias(0f, light.slopeScaleBias);
             ExecuteBuffer();
             context.DrawShadows(ref drawShadowSettings);
+            buffer.SetGlobalDepthBias(0f, 0f);
         }
     }
 
