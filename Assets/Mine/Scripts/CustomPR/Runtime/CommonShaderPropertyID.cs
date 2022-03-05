@@ -17,10 +17,15 @@ public static class CommonShaderPropertyID
     public static int dirLightColorsId = Shader.PropertyToID("_DirectionalLightColors");
     // 定向光方向 原点指向光
     public static int dirLightDirectionsId = Shader.PropertyToID("_DirectionalLightDirections");
+    // 定向光阴影数据(如阴影强度等)
+    public static int dirLightShadowDatasId = Shader.PropertyToID("_DirLightShadowDatas");
+
     // 金属度
     public static int metallicId = Shader.PropertyToID("_Metallic");
     // 光滑度
     public static int smoothnessId = Shader.PropertyToID("_Smoothness");
     // 定向光阴影贴图
     public static int dirShadowAtlasId = Shader.PropertyToID("_DirctionalShadowAtlas");
+    // 定向光阴影变换矩阵 worldPos -> 阴影裁剪空间 -> 纹理空间
+    public static int dirShadowMatriId = Shader.PropertyToID("_DirShadowMatris");
 }

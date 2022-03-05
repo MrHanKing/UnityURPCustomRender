@@ -20,6 +20,7 @@ public class Lighting
 
     private static Vector4[] dirLightColors = new Vector4[maxDirLightCount];
     private static Vector4[] dirLightDirections = new Vector4[maxDirLightCount];
+    private static Vector4[] dirLightShadowDatas = new Vector4[maxDirLightCount];
 
     public void Setup(ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings shadowSettings)
     {
@@ -61,6 +62,7 @@ public class Lighting
         buffer.SetGlobalInt(CommonShaderPropertyID.dirLightCountId, visibleLights.Length);
         buffer.SetGlobalVectorArray(CommonShaderPropertyID.dirLightColorsId, dirLightColors);
         buffer.SetGlobalVectorArray(CommonShaderPropertyID.dirLightDirectionsId, dirLightDirections);
+        buffer.SetGlobalVectorArray(CommonShaderPropertyID.dirLightShadowDatasId, dirLightShadowDatas);
     }
 
     /// <summary>
@@ -74,7 +76,7 @@ public class Lighting
         // 转换矩阵的第三列是前向向量
         dirLightDirections[index] = -light.localToWorldMatrix.GetColumn(2);
 
-        shadows.ReserveDirectionalShadows(light.light, index);
+        dirLightShadowDatas[index] = shadows.ReserveDirectionalShadows(light.light, index);
     }
 
     public void Cleanup()

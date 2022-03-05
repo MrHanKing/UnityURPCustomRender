@@ -14,7 +14,7 @@ public class Shadows
     #endregion
 
     const string bufferName = "Shadows";
-    const int maxShadowDirectionalLightCount = 1;
+    const int maxShadowDirectionalLightCount = 4;
     private CommandBuffer buffer = new CommandBuffer()
     {
         name = bufferName
@@ -26,6 +26,8 @@ public class Shadows
     // 定向光的阴影数据
     private ShadowDirectionalLight[] shadowDirectionalLights = new ShadowDirectionalLight[maxShadowDirectionalLightCount];
     private int currentShadowDirectionalLightCount = 0;
+    // 阴影的转换矩阵
+    private static Matrix4x4[] dirShadowMatris = new Matrix4x4[maxShadowDirectionalLightCount];
 
     public void Setup(
         ScriptableRenderContext context, CullingResults cullingResults,
@@ -60,7 +62,7 @@ public class Shadows
     /// </summary>
     /// <param name="light"></param>
     /// <param name="visibleLightIndex"></param>
-    public void ReserveDirectionalShadows(Light light, int visibleLightIndex)
+    public Vector2 ReserveDirectionalShadows(Light light, int visibleLightIndex)
     {
         if (currentShadowDirectionalLightCount < maxShadowDirectionalLightCount &&
             !IgnoreShadow(light) &&
@@ -72,8 +74,13 @@ public class Shadows
                 visibleLightIndex = visibleLightIndex
             };
 
+            var result = new Vector2(light.shadowStrength, currentShadowDirectionalLightCount);
+
             currentShadowDirectionalLightCount += 1;
+            return result;
         }
+
+        return Vector2.zero;
     }
 
     public void Cleanup()
@@ -96,15 +103,21 @@ public class Shadows
 
         buffer.BeginSample(bufferName);
         ExecuteBuffer();
+
+        // 阴影
+        int split = currentShadowDirectionalLightCount <= 1 ? 1 : 2; // 最大支持4光影
+        int tileSize = atlasSize / split; // 纹理正方型 求一次就行
         for (int i = 0; i < currentShadowDirectionalLightCount; i++)
         {
-            RenderDirectionalShadows(i, atlasSize);
+            RenderDirectionalShadows(i, split, tileSize);
         }
+        buffer.SetGlobalMatrixArray(CommonShaderPropertyID.dirShadowMatriId, dirShadowMatris);
+
         buffer.EndSample(bufferName);
         ExecuteBuffer();
     }
 
-    private void RenderDirectionalShadows(int index, int tileSize)
+    private void RenderDirectionalShadows(int index, int split, int tileSize)
     {
         ShadowDirectionalLight light = shadowDirectionalLights[index];
         var shadowSettings =
@@ -116,9 +129,60 @@ public class Shadows
             out ShadowSplitData shadowSplitData
         );
         shadowSettings.splitData = shadowSplitData;
+        var offset = SetTileViewport(index, split, tileSize);
+        dirShadowMatris[index] = ConvertToAtlasMatrix(projectionMatrix * viewMatrix, offset, split);
         buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
         ExecuteBuffer();
         context.DrawShadows(ref shadowSettings);
+    }
+
+    /// <summary>
+    /// 转换VP矩阵 -> VP + 阴影贴图纹理空间 矩阵
+    /// </summary>
+    /// <param name="m"></param>
+    /// <param name="offset"></param>
+    /// <param name="split"></param>
+    /// <returns></returns>
+    private Matrix4x4 ConvertToAtlasMatrix(Matrix4x4 m, Vector2 offset, int split)
+    {
+        // 反转Z OpenGL 1表示最大深度 而其他图像API正好相反
+        if (SystemInfo.usesReversedZBuffer)
+        {
+            m.m20 = -m.m20;
+            m.m21 = -m.m21;
+            m.m22 = -m.m22;
+            m.m23 = -m.m23;
+        }
+
+        // 裁剪空间[-1, 1] 映射为纹理空间[0, 1]  再根据分区进行偏移和缩放
+        float scale = 1 / split;
+        m.m00 = (0.5f * (m.m00 + m.m30) + offset.x * m.m30) * scale; // m30 即 w分量 来矫正倍数
+        m.m01 = (0.5f * (m.m01 + m.m31) + offset.x * m.m31) * scale;
+        m.m02 = (0.5f * (m.m02 + m.m32) + offset.x * m.m32) * scale;
+        m.m03 = (0.5f * (m.m03 + m.m33) + offset.x * m.m33) * scale;
+        m.m10 = (0.5f * (m.m10 + m.m30) + offset.y * m.m30) * scale;
+        m.m11 = (0.5f * (m.m11 + m.m31) + offset.y * m.m31) * scale;
+        m.m12 = (0.5f * (m.m12 + m.m32) + offset.y * m.m32) * scale;
+        m.m13 = (0.5f * (m.m13 + m.m33) + offset.y * m.m33) * scale;
+        m.m20 = 0.5f * (m.m20 + m.m30);
+        m.m21 = 0.5f * (m.m21 + m.m31);
+        m.m22 = 0.5f * (m.m22 + m.m32);
+        m.m23 = 0.5f * (m.m23 + m.m33);
+
+        return m;
+    }
+
+    /// <summary>
+    /// 设置渲染视野所在纹理的位置
+    /// </summary>
+    /// <param name="index">光的index</param>
+    /// <param name="split">切分量</param>
+    /// <param name="tileSize">纹理单位大小</param>
+    private Vector2 SetTileViewport(int index, int split, float tileSize)
+    {
+        Vector2 offset = new Vector2(index % split, index / split);
+        buffer.SetViewport(new Rect(offset.x * tileSize, offset.y * tileSize, tileSize, tileSize));
+        return offset;
     }
 
     private bool IgnoreShadow(Light light)

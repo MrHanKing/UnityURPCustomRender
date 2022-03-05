@@ -17,19 +17,19 @@ float3 DirectBRDF(Surface surface, BRDF brdf, Light light){
 	return SpecularStrength(surface, brdf, light) * brdf.specular + brdf.diffuse;
 }
 
-// 入射光 (入射光能量)
+// 入射光 (入射光能量) 考虑阴影
 float3 IncomingLight (Surface surface, Light light) {
-	return saturate(dot(surface.normal, light.direction)) * light.color;
+	return saturate(dot(surface.normal, light.direction)) * light.color * light.attenuationShadow;
 }
 
 float3 GetLighting (Surface surface, BRDF brdf, Light light) {
 	return IncomingLight(surface, light) * DirectBRDF(surface, brdf, light);
 }
 
-float3 GetLighting (Surface surface, BRDF brdf) {
+float3 GetLighting (Surface surfaceWS, BRDF brdf) {
     float3 outColor = 0.0;
 	for (int i = 0; i < GetDirectionalLightCount(); i++) {
-		outColor += GetLighting(surface, brdf, GetDirectionalLight(i));
+		outColor += GetLighting(surfaceWS, brdf, GetDirectionalLight(i, surfaceWS));
 	}
 
 	return outColor;
