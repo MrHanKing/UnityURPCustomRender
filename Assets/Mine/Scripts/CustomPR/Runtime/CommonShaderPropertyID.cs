@@ -32,6 +32,6 @@ public static class CommonShaderPropertyID
     public static int shadowCascadeCountId = Shader.PropertyToID("_ShadowCascadeCount");
     // 级联阴影剔除球 以摄像机距离范围为半径的球体剔除
     public static int shadowCascadeCullingSpheresId = Shader.PropertyToID("_ShadowCascadeCullingSpheres");
-    // 阴影最大渲染距离
-    public static int shadowDistanceId = Shader.PropertyToID("_ShadowDistance");
+    // x: 1f/阴影最大渲染距离 y: 1f/阴影淡出范围边缘
+    public static int shadowDistanceFadePropId = Shader.PropertyToID("_ShadowDistanceFadeProp");
 }

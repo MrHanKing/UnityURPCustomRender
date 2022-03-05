@@ -17,7 +17,9 @@ public class ShadowSettings
 {
     [Min(0f)]
     public float maxDistance = 100f;
-
+    [Range(0.001f, 1f)]
+    [Tooltip("到最大阴影距离时 边缘淡出范围比例")]
+    public float distanceFade = 0.1f;
     // 定向光
     [System.Serializable]
     public struct Directional
@@ -36,7 +38,11 @@ public class ShadowSettings
         /// </summary>
         [Range(0f, 1f)]
         public float cascadeRatio1, cascadeRatio2, cascadeRatio3;
-
+        /// <summary>
+        /// 最后一个级联的边缘淡化阴影
+        /// </summary>
+        [Range(0.001f, 1f)]
+        public float cascadeFade;
         public Vector3 cascadeRatios { get { return new Vector3(cascadeRatio1, cascadeRatio2, cascadeRatio3); } }
     }
 
@@ -47,6 +53,7 @@ public class ShadowSettings
         cascadeRatio1 = 0.1f,
         cascadeRatio2 = 0.25f,
         cascadeRatio3 = 0.5f,
+        cascadeFade = 0.1f
     };
 
 }

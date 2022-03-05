@@ -11,7 +11,7 @@ SAMPLER_CMP(SHADOW_SAMPLER);
 // 系统场景光阴影
 CBUFFER_START(_CustomShadow)
 	int _ShadowCascadeCount;
-	float _ShadowDistance;
+	float4 _ShadowDistanceFadeProp;
 	float4 _ShadowCascadeCullingSpheres[MAX_SHADOW_CASCADE];
 	float4x4 _DirShadowMatris[MAX_SHADOW_DIRECTIONAL_LIGHT_COUNT * MAX_SHADOW_CASCADE];
 CBUFFER_END
@@ -27,16 +27,28 @@ struct DirectionalShadowData{
 	int tileIndex; // 阴影的纹理区域Index
 };
 
+// 淡出阴影强度
+float FadedShadowStrength(float distance, float scale, float fade){
+	return saturate((1.0 - distance * scale) * fade);
+}
+
 // 阴影数据
 ShadowData GetShadowData(Surface surfaceWS){
 	ShadowData shadowData;
-	shadowData.strength = surfaceWS.depth < _ShadowDistance ? 1.0 : 0.0;
+	shadowData.strength = FadedShadowStrength(surfaceWS.depth, _ShadowDistanceFadeProp.x, _ShadowDistanceFadeProp.y);
 
 	int i;
 	for(i = 0; i < _ShadowCascadeCount; i++){
 		float4 sphere = _ShadowCascadeCullingSpheres[i];
 		float distanceSqr = DistanceSquare(sphere.xyz, surfaceWS.position);
 		if(distanceSqr < sphere.w){
+			if (i == _ShadowCascadeCount - 1) {
+				// 最后一级过渡边缘
+				shadowData.strength *= FadedShadowStrength(
+					distanceSqr, 1.0 / sphere.w, _ShadowDistanceFadeProp.z
+				);
+				// shadowData.strength = 0.0;
+			}
 			break;
 		}
 	}

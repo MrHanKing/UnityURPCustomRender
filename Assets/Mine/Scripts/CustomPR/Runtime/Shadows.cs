@@ -118,7 +118,9 @@ public class Shadows
         buffer.SetGlobalMatrixArray(CommonShaderPropertyID.dirShadowMatriId, dirShadowMatris);
         buffer.SetGlobalInt(CommonShaderPropertyID.shadowCascadeCountId, shadowSettings.directional.cascadeCount);
         buffer.SetGlobalVectorArray(CommonShaderPropertyID.shadowCascadeCullingSpheresId, cascadeCullingSpheres);
-        buffer.SetGlobalFloat(CommonShaderPropertyID.shadowDistanceId, shadowSettings.maxDistance);
+        float f = 1f - shadowSettings.directional.cascadeFade;
+        buffer.SetGlobalVector(CommonShaderPropertyID.shadowDistanceFadePropId,
+        new Vector4(1f / shadowSettings.maxDistance, 1f / shadowSettings.distanceFade, 1f / (1f - f * f)));
 
         buffer.EndSample(bufferName);
         ExecuteBuffer();
@@ -137,7 +139,7 @@ public class Shadows
         {
             // 计算投影矩阵和裁剪空间立方体
             cullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
-                light.visibleLightIndex, 0, 1, Vector3.zero, tileSize, 0f,
+                light.visibleLightIndex, i, cascadeCount, ratios, tileSize, 0f,
                 out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix,
                 out ShadowSplitData shadowSplitData
             );
