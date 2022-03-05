@@ -28,4 +28,10 @@ public static class CommonShaderPropertyID
     public static int dirShadowAtlasId = Shader.PropertyToID("_DirctionalShadowAtlas");
     // 定向光阴影变换矩阵 worldPos -> 阴影裁剪空间 -> 纹理空间
     public static int dirShadowMatriId = Shader.PropertyToID("_DirShadowMatris");
+    // 级联阴影级别
+    public static int shadowCascadeCountId = Shader.PropertyToID("_ShadowCascadeCount");
+    // 级联阴影剔除球 以摄像机距离范围为半径的球体剔除
+    public static int shadowCascadeCullingSpheresId = Shader.PropertyToID("_ShadowCascadeCullingSpheres");
+    // 阴影最大渲染距离
+    public static int shadowDistanceId = Shader.PropertyToID("_ShadowDistance");
 }

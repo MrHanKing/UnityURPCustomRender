@@ -20,6 +20,7 @@ public class Lighting
 
     private static Vector4[] dirLightColors = new Vector4[maxDirLightCount];
     private static Vector4[] dirLightDirections = new Vector4[maxDirLightCount];
+    // x:阴影强度 y:阴影纹理Index 
     private static Vector4[] dirLightShadowDatas = new Vector4[maxDirLightCount];
 
     public void Setup(ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings shadowSettings)

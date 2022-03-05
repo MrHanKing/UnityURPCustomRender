@@ -20,4 +20,9 @@ float Square(float v){
     return v * v;
 }
 
+// 平方距离
+float DistanceSquare(float3 pA, float3 pB){
+    return dot(pB - pA, pB - pA);
+}
+
 #endif
