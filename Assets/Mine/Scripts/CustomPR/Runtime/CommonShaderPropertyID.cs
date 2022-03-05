@@ -30,8 +30,10 @@ public static class CommonShaderPropertyID
     public static int dirShadowMatriId = Shader.PropertyToID("_DirShadowMatris");
     // 级联阴影级别
     public static int shadowCascadeCountId = Shader.PropertyToID("_ShadowCascadeCount");
+    // 级联阴影的更多数据
+    public static int shadowCascadeDataId = Shader.PropertyToID("_ShadowCascadeData");
     // 级联阴影剔除球 以摄像机距离范围为半径的球体剔除
     public static int shadowCascadeCullingSpheresId = Shader.PropertyToID("_ShadowCascadeCullingSpheres");
-    // x: 1f/阴影最大渲染距离 y: 1f/阴影淡出范围边缘
+    // x: 1f/阴影最大渲染距离 y: 1f/阴影淡出范围边缘 z:最后一级淡出曲线
     public static int shadowDistanceFadePropId = Shader.PropertyToID("_ShadowDistanceFadeProp");
 }

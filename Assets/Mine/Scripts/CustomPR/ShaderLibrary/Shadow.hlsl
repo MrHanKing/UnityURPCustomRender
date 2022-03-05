@@ -13,6 +13,7 @@ CBUFFER_START(_CustomShadow)
 	int _ShadowCascadeCount;
 	float4 _ShadowDistanceFadeProp;
 	float4 _ShadowCascadeCullingSpheres[MAX_SHADOW_CASCADE];
+	float4 _ShadowCascadeData[MAX_SHADOW_CASCADE];
 	float4x4 _DirShadowMatris[MAX_SHADOW_DIRECTIONAL_LIGHT_COUNT * MAX_SHADOW_CASCADE];
 CBUFFER_END
 
@@ -45,7 +46,7 @@ ShadowData GetShadowData(Surface surfaceWS){
 			if (i == _ShadowCascadeCount - 1) {
 				// 最后一级过渡边缘
 				shadowData.strength *= FadedShadowStrength(
-					distanceSqr, 1.0 / sphere.w, _ShadowDistanceFadeProp.z
+					distanceSqr, _ShadowCascadeData[i].x, _ShadowDistanceFadeProp.z
 				);
 				// shadowData.strength = 0.0;
 			}
@@ -71,12 +72,14 @@ float SampleDirectionalShadowAtlas(float3 positionSTS){
 }
 
 // 获取阴影衰减
-float GetDirectionalShadowAttenuation(DirectionalShadowData shadowData, Surface surfaceWS){
+float GetDirectionalShadowAttenuation(DirectionalShadowData shadowData, ShadowData globalShadow, Surface surfaceWS){
 	if(shadowData.strength <= 0.0){
 		return 1.0;
 	}
-
-	float3 positionSTS = mul(_DirShadowMatris[shadowData.tileIndex], float4(surfaceWS.position, 1.0)).xyz;
+	// 偏移采样
+	float3 normalBias = surfaceWS.normal * _ShadowCascadeData[globalShadow.cascadeIndex].y;
+	float4 getPos = float4(surfaceWS.position + normalBias, 1.0);
+	float3 positionSTS = mul(_DirShadowMatris[shadowData.tileIndex], getPos).xyz;
 	float shadow = SampleDirectionalShadowAtlas(positionSTS);
 	// 1表示无阴影 0表示全阴影
 	return lerp(1.0, shadow, shadowData.strength);

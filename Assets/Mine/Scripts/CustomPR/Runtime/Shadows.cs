@@ -31,6 +31,8 @@ public class Shadows
     private static Matrix4x4[] dirShadowMatris = new Matrix4x4[maxShadowDirectionalLightCount * maxShadowCascades];
     // 级联阴影剔除球
     private static Vector4[] cascadeCullingSpheres = new Vector4[maxShadowCascades];
+    private static Vector4[] cascadeDatas = new Vector4[maxShadowCascades];
+
     public void Setup(
         ScriptableRenderContext context, CullingResults cullingResults,
         ShadowSettings shadowSettings
@@ -118,6 +120,8 @@ public class Shadows
         buffer.SetGlobalMatrixArray(CommonShaderPropertyID.dirShadowMatriId, dirShadowMatris);
         buffer.SetGlobalInt(CommonShaderPropertyID.shadowCascadeCountId, shadowSettings.directional.cascadeCount);
         buffer.SetGlobalVectorArray(CommonShaderPropertyID.shadowCascadeCullingSpheresId, cascadeCullingSpheres);
+        buffer.SetGlobalVectorArray(CommonShaderPropertyID.shadowCascadeDataId, cascadeDatas);
+
         float f = 1f - shadowSettings.directional.cascadeFade;
         buffer.SetGlobalVector(CommonShaderPropertyID.shadowDistanceFadePropId,
         new Vector4(1f / shadowSettings.maxDistance, 1f / shadowSettings.distanceFade, 1f / (1f - f * f)));
@@ -147,11 +151,7 @@ public class Shadows
             if (index == 0)
             {
                 // 只取第一个灯的剔除球距离 所有平行光定义一份
-                // cullingSphere xyz:球心坐标  w:半径
-                Vector4 cullingSphere = shadowSplitData.cullingSphere;
-                // 距离要拿来判断片元是否在范围内 所以用平方来比较 减少计算量
-                cullingSphere.w *= cullingSphere.w;
-                cascadeCullingSpheres[i] = cullingSphere;
+                SetCascadeData(i, shadowSplitData.cullingSphere, tileSize);
             }
 
             drawShadowSettings.splitData = shadowSplitData;
@@ -163,6 +163,19 @@ public class Shadows
             ExecuteBuffer();
             context.DrawShadows(ref drawShadowSettings);
         }
+    }
+
+    // 级联阴影数据
+    private void SetCascadeData(int levelIndex, Vector4 cullingSphere, float tileSize)
+    {
+        // cullingSphere xyz:球心坐标  w:半径
+        // 距离要拿来判断片元是否在范围内 所以用平方来比较 减少计算量
+        cullingSphere.w *= cullingSphere.w;
+        cascadeCullingSpheres[levelIndex] = cullingSphere;
+
+        // 伪阴影由于 一个纹素被多个点使用导致 通过沿法线偏移采样解决 1.4142是√2
+        float textSize = 2f * cullingSphere.w / tileSize * 1.4142f;
+        cascadeDatas[levelIndex] = new Vector4(1f / cullingSphere.w, textSize);
     }
 
     /// <summary>
