@@ -182,7 +182,7 @@ public class Shadows
         }
 
         // 裁剪空间[-1, 1] 映射为纹理空间[0, 1]  再根据分区进行偏移和缩放
-        float scale = 1 / split;
+        float scale = 1f / split;
         m.m00 = (0.5f * (m.m00 + m.m30) + offset.x * m.m30) * scale; // m30 即 w分量 来矫正倍数
         m.m01 = (0.5f * (m.m01 + m.m31) + offset.x * m.m31) * scale;
         m.m02 = (0.5f * (m.m02 + m.m32) + offset.x * m.m32) * scale;

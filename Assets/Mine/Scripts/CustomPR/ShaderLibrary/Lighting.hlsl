@@ -19,7 +19,7 @@ float3 DirectBRDF(Surface surface, BRDF brdf, Light light){
 
 // 入射光 (入射光能量) 考虑阴影
 float3 IncomingLight (Surface surface, Light light) {
-	return saturate(dot(surface.normal, light.direction)) * light.color * light.attenuationShadow;
+	return saturate(dot(surface.normal, light.direction) * light.attenuationShadow) * light.color;
 }
 
 float3 GetLighting (Surface surface, BRDF brdf, Light light) {
