@@ -4,6 +4,16 @@ using UnityEngine.Rendering;
 
 public class CustomLitShaderGUI : ShaderGUI
 {
+    #region 定义
+    enum ShadowMode
+    {
+        On,// 透明度
+        Clip,// 裁剪
+        Dither,// 抖动
+        Off,
+    }
+    #endregion
+
     #region 属性设置
     bool Clipping
     {
@@ -35,6 +45,17 @@ public class CustomLitShaderGUI : ShaderGUI
             }
         }
     }
+    ShadowMode Shadows
+    {
+        set
+        {
+            if (SetProperty("_Shadows", (float)value))
+            {
+                SetKeyword("_SHADOWS_CLIP", value == ShadowMode.Clip);
+                SetKeyword("_SHADOWS_DITHER", value == ShadowMode.Dither);
+            }
+        }
+    }
     #endregion
 
     MaterialEditor editor;
@@ -45,6 +66,8 @@ public class CustomLitShaderGUI : ShaderGUI
 
     public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
     {
+        EditorGUI.BeginChangeCheck();
+
         base.OnGUI(materialEditor, properties);
         this.editor = materialEditor;
         this.properties = properties;
@@ -59,6 +82,11 @@ public class CustomLitShaderGUI : ShaderGUI
             FadePreset();
             TransparentPreset();
         }
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            SetShadowCasterPass();
+        }
     }
 
     void SetProperty(string name, string keyword, bool value)
@@ -68,9 +96,13 @@ public class CustomLitShaderGUI : ShaderGUI
     }
 
     // 属性
-    private void SetProperty(string name, float value)
+    private bool SetProperty(string name, float value)
     {
-        FindProperty(name, properties).floatValue = value;
+        MaterialProperty target = FindProperty(name, properties);
+        var oldValue = target.floatValue;
+        target.floatValue = value;
+
+        return oldValue != value;
     }
 
     // 关键字
@@ -112,6 +144,7 @@ public class CustomLitShaderGUI : ShaderGUI
             DstBlend = BlendMode.Zero;
             ZWrite = true;
             RenderQueue = RenderQueue.Geometry;
+            Shadows = ShadowMode.On;
         }
     }
 
@@ -125,6 +158,7 @@ public class CustomLitShaderGUI : ShaderGUI
             DstBlend = BlendMode.Zero;
             ZWrite = true;
             RenderQueue = RenderQueue.AlphaTest;
+            Shadows = ShadowMode.Clip;
         }
     }
 
@@ -138,6 +172,7 @@ public class CustomLitShaderGUI : ShaderGUI
             DstBlend = BlendMode.OneMinusSrcAlpha;
             ZWrite = false;
             RenderQueue = RenderQueue.Transparent;
+            Shadows = ShadowMode.Dither;
         }
     }
 
@@ -151,6 +186,21 @@ public class CustomLitShaderGUI : ShaderGUI
             DstBlend = BlendMode.OneMinusSrcAlpha;
             ZWrite = false;
             RenderQueue = RenderQueue.Transparent;
+            Shadows = ShadowMode.Clip;
+        }
+    }
+
+    private void SetShadowCasterPass()
+    {
+        MaterialProperty shadows = FindProperty("_Shadows", properties, false);
+        if (shadows == null || shadows.hasMixedValue)
+        {
+            return;
+        }
+        bool enabled = shadows.floatValue < (float)ShadowMode.Off;
+        foreach (Material m in materials)
+        {
+            m.SetShaderPassEnabled("ShadowCaster", enabled);
         }
     }
 }

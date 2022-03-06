@@ -13,6 +13,9 @@
         _Metallic("金属度", Range(0.0, 1.0)) = 0
         _Smoothness("光滑度", Range(0.0, 1.0)) = 0
         [Toggle(_PREMULTI_ALPHA)] _PremulAlpha ("是否预乘alpha", Float) = 0
+
+        [KeywordEnum(On, Clip, Dither, Off)] _Shadows ("阴影模式", Float) = 0
+        [Toggle(_RECEIVE_SHADOWS)] _ReceiveShadows ("表面受阴影影响", Float) = 1
     }
     SubShader
     {
@@ -32,6 +35,7 @@
             // 关键字分支
             #pragma shader_feature _CLIPPING
             #pragma shader_feature _PREMULTI_ALPHA
+            #pragma shader_feature _RECEIVE_SHADOWS
             #pragma multi_compile _ _DIRECTIONAL_SHADOW_PCF3 _DIRECTIONAL_SHADOW_PCF5 _DIRECTIONAL_SHADOW_PCF7
             #pragma multi_compile _ _CASCADE_BLEND_SOFT _CASCADE_BLEND_DITHER 
             #pragma multi_compile_instancing
@@ -52,7 +56,7 @@
 
             HLSLPROGRAM
             #pragma target 3.5
-            #pragma shader_feature _CLIPPING
+            #pragma shader_feature _ _SHADOWS_CLIP _SHADOWS_DITHER
             #pragma shader_feature _PREMULTI_ALPHA
             #pragma vertex ShadowCasterPassVertex
             #pragma fragment ShadowCasterPassFragment

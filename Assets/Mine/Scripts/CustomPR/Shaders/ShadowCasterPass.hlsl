@@ -44,8 +44,11 @@ void ShadowCasterPassFragment(Varyings input){
     float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.baseUV);
     float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
     float4 resultColor = baseMap * baseColor;
-#if defined(_CLIPPING)
-    float4 cutoffAlpha = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff);
+#if defined(_SHADOWS_CLIP)
+    float cutoffAlpha = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff);
+    clip(resultColor.a - cutoffAlpha);
+#elif defined(_SHADOWS_DITHER)
+    float cutoffAlpha = InterleavedGradientNoise(input.positionCS.xy, 0);
     clip(resultColor.a - cutoffAlpha);
 #endif
 }
