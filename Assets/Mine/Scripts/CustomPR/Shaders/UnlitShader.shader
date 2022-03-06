@@ -12,6 +12,10 @@
     }
     SubShader
     {
+        HLSLINCLUDE
+		#include "../ShaderLibrary/Common.hlsl"
+		#include "UnlitInput.hlsl"
+		ENDHLSL
         // Tags { "RenderType"="Opaque" }
         // LOD 100
         Blend [_SrcBlend] [_DstBlend]
@@ -28,5 +32,6 @@
             #include "UnlitPass.hlsl"
             ENDHLSL
         }
+        // TODO 阴影还没加
     }
 }

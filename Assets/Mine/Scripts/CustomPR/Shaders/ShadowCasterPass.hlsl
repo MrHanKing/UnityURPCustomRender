@@ -1,18 +1,6 @@
 #ifndef CUSTOM_SHADOW_CASTER_PASS_INCLUDED
 #define CUSTOM_SHADOW_CASTER_PASS_INCLUDED
 
-#include "../ShaderLibrary/Common.hlsl"
-
-TEXTURE2D(_BaseMap);
-// 采样器状态 控制如何采样 如clamp或repeat模式
-SAMPLER(sampler_BaseMap);
-
-UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-    UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)
-	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
-    UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
-UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
-
 // 顶点输入
 struct Attributes{
     float3 positionOS : POSITION;
@@ -35,17 +23,15 @@ Varyings ShadowCasterPassVertex(Attributes input) {
     output.positionCS = TransformWorldToHClip(positionWS);
 
     float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseMap_ST);
-    output.baseUV = input.baseUV * baseST.xy + baseST.zw;
+    output.baseUV = TransformBaseUV(input.baseUV);
     return output;
 }
 
 void ShadowCasterPassFragment(Varyings input){
     UNITY_SETUP_INSTANCE_ID(input);
-    float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.baseUV);
-    float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
-    float4 resultColor = baseMap * baseColor;
+    float4 resultColor = GetBase(input.baseUV);
 #if defined(_SHADOWS_CLIP)
-    float cutoffAlpha = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff);
+    float cutoffAlpha = GetCutoff(input.baseUV);
     clip(resultColor.a - cutoffAlpha);
 #elif defined(_SHADOWS_DITHER)
     float cutoffAlpha = InterleavedGradientNoise(input.positionCS.xy, 0);
