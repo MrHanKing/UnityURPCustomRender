@@ -70,6 +70,22 @@
             #include "ShadowCasterPass.hlsl"
             ENDHLSL
         }
+
+        // meta通道确定间接漫反射颜色
+        Pass {
+			Tags {
+				"LightMode" = "Meta"
+			}
+
+			Cull Off
+
+			HLSLPROGRAM
+			#pragma target 3.5
+			#pragma vertex MetaPassVertex
+			#pragma fragment MetaPassFragment
+			#include "MetaPass.hlsl"
+			ENDHLSL
+		}
     }
 
     CustomEditor "CustomLitShaderGUI"

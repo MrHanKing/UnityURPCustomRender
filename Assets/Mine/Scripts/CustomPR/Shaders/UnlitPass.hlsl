@@ -1,8 +1,6 @@
 #ifndef CUSTOM_UNLIT_PASS_INCLUDED
 #define CUSTOM_UNLIT_PASS_INCLUDED
 
-#include "../ShaderLibrary/Common.hlsl"
-
 // 顶点输入
 struct Attributes{
     float3 positionOS : POSITION;
