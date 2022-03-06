@@ -40,11 +40,16 @@ public class Shadows
     // 级联阴影剔除球
     private static Vector4[] cascadeCullingSpheres = new Vector4[maxShadowCascades];
     private static Vector4[] cascadeDatas = new Vector4[maxShadowCascades];
-
+    // 阴影采样模式
     private static string[] directionalFilterKeywords = {
         "_DIRECTIONAL_SHADOW_PCF3",
         "_DIRECTIONAL_SHADOW_PCF5",
         "_DIRECTIONAL_SHADOW_PCF7"
+    };
+    // 阴影混合模式
+    private static string[] cascadeBlendKeywords = {
+        "_CASCADE_BLEND_SOFT",
+        "_CASCADE_BLEND_DITHER",
     };
 
     public void Setup(
@@ -143,7 +148,8 @@ public class Shadows
         buffer.SetGlobalVector(CommonShaderPropertyID.shadowDistanceFadePropId,
         new Vector4(1f / shadowSettings.maxDistance, 1f / shadowSettings.distanceFade, 1f / (1f - f * f)));
 
-        SetKeywords();
+        SetKeywords(directionalFilterKeywords, (int)shadowSettings.directional.filterMode);
+        SetKeywords(cascadeBlendKeywords, (int)shadowSettings.directional.cascadeBlendMode);
         buffer.SetGlobalVector(CommonShaderPropertyID.shadowAtlasSizeId, new Vector4(atlasSize, 1f / atlasSize));
         #endregion
 
@@ -154,19 +160,20 @@ public class Shadows
     /// <summary>
     /// 设置Shader关键字 shader变体
     /// </summary>
-    private void SetKeywords()
+    private void SetKeywords(string[] keywords, int modeEnumIndex)
     {
         // 映射枚举 和 shader keyword
-        int enabledIndex = (int)shadowSettings.directional.filterMode - 1;
-        for (int i = 0; i < directionalFilterKeywords.Length; i++)
+        // int enabledIndex = (int)shadowSettings.directional.filterMode - 1;
+        int enabledIndex = modeEnumIndex - 1;
+        for (int i = 0; i < keywords.Length; i++)
         {
             if (i == enabledIndex)
             {
-                buffer.EnableShaderKeyword(directionalFilterKeywords[i]);
+                buffer.EnableShaderKeyword(keywords[i]);
             }
             else
             {
-                buffer.DisableShaderKeyword(directionalFilterKeywords[i]);
+                buffer.DisableShaderKeyword(keywords[i]);
             }
         }
     }
@@ -179,6 +186,7 @@ public class Shadows
         int cascadeCount = shadowSettings.directional.cascadeCount;
         int tileOffset = index * cascadeCount;
         Vector3 ratios = shadowSettings.directional.cascadeRatios;
+        float cullingFactor = Mathf.Max(0f, 0.8f - shadowSettings.directional.cascadeFade);
 
         for (int i = 0; i < cascadeCount; i++)
         {
@@ -195,6 +203,7 @@ public class Shadows
                 SetCascadeData(i, shadowSplitData.cullingSphere, tileSize);
             }
 
+            shadowSplitData.shadowCascadeBlendCullingFactor = cullingFactor;
             drawShadowSettings.splitData = shadowSplitData;
             int tileIndex = tileOffset + i;
             var offset = SetTileViewport(tileIndex, split, tileSize);

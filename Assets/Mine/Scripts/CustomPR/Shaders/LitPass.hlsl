@@ -78,6 +78,8 @@ float4 LitPassFragment(Varyings input) : SV_TARGET{
     surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic);
     surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
     surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
+    // 噪声采样抖动值
+    surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
 #if defined(_PREMULTI_ALPHA)
     BRDF brdf = GetBRDF(surface, true);
 #else

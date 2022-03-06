@@ -79,6 +79,17 @@ ShadowData GetShadowData(Surface surfaceWS){
 	if(i >= _ShadowCascadeCount){
 		shadowData.strength = 0.0;
 	}
+	#if defined(_CASCADE_BLEND_DITHER)
+	else if(shadowData.cascadeBlend < surfaceWS.dither){
+		// 部分扰动到下一阶阴影
+		i += 1;
+	}
+	#endif
+
+	// 关闭级联混合
+	#if !defined(_CASCADE_BLEND_SOFT)
+		shadowData.cascadeBlend = 1.0;
+	#endif
 
 	shadowData.cascadeIndex = i;
 	return shadowData;

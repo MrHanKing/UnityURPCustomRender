@@ -23,6 +23,17 @@ public enum ShadowFilterMode
     PCF7x7
 }
 
+/// <summary>
+/// 级联混合模式
+/// </summary>
+public enum CascadeBlendMode
+{
+    Hard,
+    Soft,
+    // 抖动过渡 成本比软阴影低点
+    Dither
+}
+
 [System.Serializable]
 public class ShadowSettings
 {
@@ -55,6 +66,10 @@ public class ShadowSettings
         /// </summary>
         [Range(0.001f, 1f)]
         public float cascadeFade;
+        /// <summary>
+        /// 级联混合模式
+        /// </summary>
+        public CascadeBlendMode cascadeBlendMode;
         public Vector3 cascadeRatios { get { return new Vector3(cascadeRatio1, cascadeRatio2, cascadeRatio3); } }
     }
 
@@ -66,7 +81,8 @@ public class ShadowSettings
         cascadeRatio1 = 0.1f,
         cascadeRatio2 = 0.25f,
         cascadeRatio3 = 0.5f,
-        cascadeFade = 0.1f
+        cascadeFade = 0.1f,
+        cascadeBlendMode = CascadeBlendMode.Hard
     };
 
 }
