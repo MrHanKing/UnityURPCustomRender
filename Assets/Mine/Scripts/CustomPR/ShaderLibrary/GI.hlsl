@@ -23,6 +23,24 @@ struct GI {
 	float3 diffuse;
 };
 
+float3 SampleLightProbe(Surface surfaceWS){
+	#if defined(LIGHTMAP_ON)
+		// 物体使用光照贴图的时候 不对探头反应
+		return 0.0;
+	#else
+		float4 coefficients[7];
+		coefficients[0] = unity_SHAr;
+		coefficients[1] = unity_SHAg;
+		coefficients[2] = unity_SHAb;
+		coefficients[3] = unity_SHBr;
+		coefficients[4] = unity_SHBg;
+		coefficients[5] = unity_SHBb;
+		coefficients[6] = unity_SHC;
+		// 球协函数求
+		return max(0.0, SampleSH9(coefficients, surfaceWS.normal));
+	#endif
+}
+
 float3 SampleLightMap(float2 lightMapUV){
 	#if defined(LIGHTMAP_ON)
 		return SampleSingleLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
@@ -39,9 +57,9 @@ float3 SampleLightMap(float2 lightMapUV){
 	#endif
 }
 
-GI GetGI(float2 lightMapUV){
+GI GetGI(float2 lightMapUV, Surface surfaceWS){
 	GI gi;
-	gi.diffuse = SampleLightMap(lightMapUV);
+	gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
 	return gi;
 }
 

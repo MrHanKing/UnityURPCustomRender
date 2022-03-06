@@ -10,6 +10,14 @@ CBUFFER_START(UnityPerDraw)
 
 	float4 unity_LightmapST;
 	float4 unity_DynamicLightmapST;// 已弃用 但必须添加 不然SPR合批可能失败
+    // 红光、绿光和蓝光的多项式分量 光线探头计算使用
+    float4 unity_SHAr;
+    float4 unity_SHAg;
+    float4 unity_SHAb;
+    float4 unity_SHBr;
+    float4 unity_SHBg;
+    float4 unity_SHBb;
+    float4 unity_SHC;
 CBUFFER_END
 
 float3 _WorldSpaceCameraPos;
