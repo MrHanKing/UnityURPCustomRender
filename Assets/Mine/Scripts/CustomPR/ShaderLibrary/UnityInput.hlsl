@@ -2,11 +2,14 @@
 #define CUSTOM_UNITY_INPUT_INCLUDED
 
 CBUFFER_START(UnityPerDraw)
-float4x4 unity_ObjectToWorld;
-float4x4 unity_WorldToObject;
-float4 unity_LODFade;
-// 本身不是有效类型，而是取决于目标平台的float4 or half4
-real4 unity_WorldTransformParams;
+    float4x4 unity_ObjectToWorld;
+    float4x4 unity_WorldToObject;
+    float4 unity_LODFade;
+    // 本身不是有效类型，而是取决于目标平台的float4 or half4
+    real4 unity_WorldTransformParams;
+
+	float4 unity_LightmapST;
+	float4 unity_DynamicLightmapST;// 已弃用 但必须添加 不然SPR合批可能失败
 CBUFFER_END
 
 float3 _WorldSpaceCameraPos;

@@ -110,6 +110,7 @@ public partial class CameraRender
     {
         drawingSettings.enableDynamicBatching = useDynamicBatching;
         drawingSettings.enableInstancing = useGPUInstancing;
+        drawingSettings.perObjectData = PerObjectData.Lightmaps;
 
         drawingSettings.SetShaderPassName(1, litShaderTagId);
     }
