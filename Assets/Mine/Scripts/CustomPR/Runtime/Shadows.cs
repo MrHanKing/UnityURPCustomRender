@@ -10,8 +10,14 @@ public class Shadows
     {
         // 光的索引映射
         public int visibleLightIndex;
-        // 斜率缩放偏移 微调阴影
+        /// <summary>
+        /// 斜率缩放偏移 微调阴影
+        /// </summary>
         public float slopeScaleBias;
+        /// <summary>
+        /// 后拉近平面 缓解近裁面阴影问题
+        /// </summary>
+        public float nearPlaneOffset;
     }
     #endregion
 
@@ -34,6 +40,12 @@ public class Shadows
     // 级联阴影剔除球
     private static Vector4[] cascadeCullingSpheres = new Vector4[maxShadowCascades];
     private static Vector4[] cascadeDatas = new Vector4[maxShadowCascades];
+
+    private static string[] directionalFilterKeywords = {
+        "_DIRECTIONAL_SHADOW_PCF3",
+        "_DIRECTIONAL_SHADOW_PCF5",
+        "_DIRECTIONAL_SHADOW_PCF7"
+    };
 
     public void Setup(
         ScriptableRenderContext context, CullingResults cullingResults,
@@ -78,7 +90,8 @@ public class Shadows
             shadowDirectionalLights[currentShadowDirectionalLightCount] = new ShadowDirectionalLight()
             {
                 visibleLightIndex = visibleLightIndex,
-                slopeScaleBias = light.shadowBias
+                slopeScaleBias = light.shadowBias,
+                nearPlaneOffset = light.shadowNearPlane
             };
 
             var result = new Vector3(light.shadowStrength, currentShadowDirectionalLightCount * maxShadowCascades, light.shadowNormalBias);
@@ -120,6 +133,7 @@ public class Shadows
         {
             RenderDirectionalShadows(i, split, tileSize);
         }
+        #region shader参数设置
         buffer.SetGlobalMatrixArray(CommonShaderPropertyID.dirShadowMatriId, dirShadowMatris);
         buffer.SetGlobalInt(CommonShaderPropertyID.shadowCascadeCountId, shadowSettings.directional.cascadeCount);
         buffer.SetGlobalVectorArray(CommonShaderPropertyID.shadowCascadeCullingSpheresId, cascadeCullingSpheres);
@@ -129,8 +143,32 @@ public class Shadows
         buffer.SetGlobalVector(CommonShaderPropertyID.shadowDistanceFadePropId,
         new Vector4(1f / shadowSettings.maxDistance, 1f / shadowSettings.distanceFade, 1f / (1f - f * f)));
 
+        SetKeywords();
+        buffer.SetGlobalVector(CommonShaderPropertyID.shadowAtlasSizeId, new Vector4(atlasSize, 1f / atlasSize));
+        #endregion
+
         buffer.EndSample(bufferName);
         ExecuteBuffer();
+    }
+
+    /// <summary>
+    /// 设置Shader关键字 shader变体
+    /// </summary>
+    private void SetKeywords()
+    {
+        // 映射枚举 和 shader keyword
+        int enabledIndex = (int)shadowSettings.directional.filterMode - 1;
+        for (int i = 0; i < directionalFilterKeywords.Length; i++)
+        {
+            if (i == enabledIndex)
+            {
+                buffer.EnableShaderKeyword(directionalFilterKeywords[i]);
+            }
+            else
+            {
+                buffer.DisableShaderKeyword(directionalFilterKeywords[i]);
+            }
+        }
     }
 
     private void RenderDirectionalShadows(int index, int split, int tileSize)
@@ -146,7 +184,7 @@ public class Shadows
         {
             // 计算投影矩阵和裁剪空间立方体
             cullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
-                light.visibleLightIndex, i, cascadeCount, ratios, tileSize, 0f,
+                light.visibleLightIndex, i, cascadeCount, ratios, tileSize, light.nearPlaneOffset,
                 out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix,
                 out ShadowSplitData shadowSplitData
             );
@@ -174,14 +212,17 @@ public class Shadows
     // 级联阴影数据
     private void SetCascadeData(int levelIndex, Vector4 cullingSphere, float tileSize)
     {
+        // 伪阴影由于 一个纹素被多个点使用导致 通过沿法线偏移采样解决 1.4142是√2
+        float textSize = 2f * cullingSphere.w / tileSize;
+        // 采样偏移
+        float filterSize = textSize * ((float)shadowSettings.directional.filterMode + 1f) * 1.4142f;
+        cascadeDatas[levelIndex] = new Vector4(1f / cullingSphere.w, filterSize);
+
         // cullingSphere xyz:球心坐标  w:半径
         // 距离要拿来判断片元是否在范围内 所以用平方来比较 减少计算量
+        cullingSphere.w -= filterSize; // 上面扩大了采样范围 防止在剔除外采样 缩小范围
         cullingSphere.w *= cullingSphere.w;
         cascadeCullingSpheres[levelIndex] = cullingSphere;
-
-        // 伪阴影由于 一个纹素被多个点使用导致 通过沿法线偏移采样解决 1.4142是√2
-        float textSize = 2f * cullingSphere.w / tileSize * 1.4142f;
-        cascadeDatas[levelIndex] = new Vector4(1f / cullingSphere.w, textSize);
     }
 
     /// <summary>

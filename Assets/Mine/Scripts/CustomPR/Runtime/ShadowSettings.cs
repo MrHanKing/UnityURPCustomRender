@@ -12,6 +12,17 @@ public enum ShadowTextureSize
     _8192 = 8192,
 }
 
+/// <summary>
+/// 阴影采样插值方式
+/// </summary>
+public enum ShadowFilterMode
+{
+    PCF2x2,
+    PCF3x3,
+    PCF5x5,
+    PCF7x7
+}
+
 [System.Serializable]
 public class ShadowSettings
 {
@@ -28,6 +39,7 @@ public class ShadowSettings
         /// 阴影图集大小
         /// </summary>
         public ShadowTextureSize atlasSize;
+        public ShadowFilterMode filterMode;
         /// <summary>
         /// 级联阴影 阴影贴图精细度分段
         /// </summary>
@@ -49,6 +61,7 @@ public class ShadowSettings
     public Directional directional = new Directional()
     {
         atlasSize = ShadowTextureSize._1024,
+        filterMode = ShadowFilterMode.PCF2x2,
         cascadeCount = 4,
         cascadeRatio1 = 0.1f,
         cascadeRatio2 = 0.25f,

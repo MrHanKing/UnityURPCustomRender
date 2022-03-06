@@ -36,4 +36,7 @@ public static class CommonShaderPropertyID
     public static int shadowCascadeCullingSpheresId = Shader.PropertyToID("_ShadowCascadeCullingSpheres");
     // x: 1f/阴影最大渲染距离 y: 1f/阴影淡出范围边缘 z:最后一级淡出曲线
     public static int shadowDistanceFadePropId = Shader.PropertyToID("_ShadowDistanceFadeProp");
+    // 阴影图集大小 x: 图集大小 y: 1f/图集大小
+    public static int shadowAtlasSizeId = Shader.PropertyToID("_ShadowAtlasSize");
+
 }
