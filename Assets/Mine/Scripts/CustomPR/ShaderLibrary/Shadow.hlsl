@@ -35,6 +35,7 @@ CBUFFER_END
 struct ShadowData{
 	int cascadeIndex; // 单个光阴影的级联索引
 	float strength; // 阴影采样强度
+	float cascadeBlend; // 级联阴影之间的混合系数 1.0为非边缘
 };
 
 struct DirectionalShadowData{
@@ -52,18 +53,23 @@ float FadedShadowStrength(float distance, float scale, float fade){
 ShadowData GetShadowData(Surface surfaceWS){
 	ShadowData shadowData;
 	shadowData.strength = FadedShadowStrength(surfaceWS.depth, _ShadowDistanceFadeProp.x, _ShadowDistanceFadeProp.y);
+	shadowData.cascadeBlend = 1.0;
 
 	int i;
 	for(i = 0; i < _ShadowCascadeCount; i++){
 		float4 sphere = _ShadowCascadeCullingSpheres[i];
 		float distanceSqr = DistanceSquare(sphere.xyz, surfaceWS.position);
 		if(distanceSqr < sphere.w){
-			if (i == _ShadowCascadeCount - 1) {
-				// 最后一级过渡边缘
-				shadowData.strength *= FadedShadowStrength(
+			// 阴影是否在边缘
+			float fade = FadedShadowStrength(
 					distanceSqr, _ShadowCascadeData[i].x, _ShadowDistanceFadeProp.z
 				);
+			if (i == _ShadowCascadeCount - 1) {
+				// 最后一级过渡边缘
+				shadowData.strength *= fade;
 				// shadowData.strength = 0.0;
+			}else{
+				shadowData.cascadeBlend = fade;
 			}
 			break;
 		}
@@ -113,6 +119,14 @@ float GetDirectionalShadowAttenuation(DirectionalShadowData shadowData, ShadowDa
 	float4 getPos = float4(surfaceWS.position + normalBias, 1.0);
 	float3 positionSTS = mul(_DirShadowMatris[shadowData.tileIndex], getPos).xyz;
 	float shadow = FilterDirectionalShadow(positionSTS);
+	// 每一级边缘区域采样混合
+	if(globalShadow.cascadeBlend < 1.0){
+		normalBias = surfaceWS.normal * (shadowData.normalBias * _ShadowCascadeData[globalShadow.cascadeIndex + 1].y);
+		getPos = float4(surfaceWS.position + normalBias, 1.0);
+		positionSTS = mul(_DirShadowMatris[shadowData.tileIndex + 1], getPos).xyz;
+		shadow = lerp(FilterDirectionalShadow(positionSTS), shadow, globalShadow.cascadeBlend);
+	}
+
 	// 1表示无阴影 0表示全阴影
 	return lerp(1.0, shadow, shadowData.strength);
 	// return shadowData.tileIndex / 4.0;
