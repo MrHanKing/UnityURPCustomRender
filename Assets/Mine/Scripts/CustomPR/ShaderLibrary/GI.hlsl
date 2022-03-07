@@ -6,6 +6,9 @@
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
 
+TEXTURE2D(unity_ShadowMask);
+SAMPLER(samplerunity_ShadowMask);
+
 TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
 SAMPLER(samplerunity_ProbeVolumeSH);
 
@@ -22,9 +25,21 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 	#define GI_FRAGMENT_DATA(input) 0.0
 #endif
 
+// 环境光
 struct GI {
 	float3 diffuse;
+	// 在烘焙数据采样
+	ShadowMask shadowMask;
 };
+
+float4 SampleBakedShadows(float2 lightMapUV){
+	// 烘焙的阴影只对光照贴图模式有用
+	#if defined(LIGHTMAP_ON)
+		return SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, lightMapUV);
+	#else
+		return 1.0;
+	#endif
+}
 
 float3 SampleLightProbe(Surface surfaceWS){
 	#if defined(LIGHTMAP_ON)
@@ -74,6 +89,13 @@ float3 SampleLightMap(float2 lightMapUV){
 GI GetGI(float2 lightMapUV, Surface surfaceWS){
 	GI gi;
 	gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
+	gi.shadowMask.distance = false;
+	gi.shadowMask.shadows = 1.0;
+	#if defined(LIGHTMAP_ON)
+		gi.shadowMask.distance = true;
+		gi.shadowMask.shadows = SampleBakedShadows(lightMapUV);
+	#endif
+
 	return gi;
 }
 

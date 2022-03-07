@@ -31,11 +31,17 @@ CBUFFER_START(_CustomShadow)
 	float4x4 _DirShadowMatris[MAX_SHADOW_DIRECTIONAL_LIGHT_COUNT * MAX_SHADOW_CASCADE];
 CBUFFER_END
 
+struct ShadowMask{
+	bool distance; // 是否启用了distance shadowMask
+	float4 shadows;
+};
+
 // 阴影数据
 struct ShadowData{
 	int cascadeIndex; // 单个光阴影的级联索引
 	float strength; // 阴影采样强度
 	float cascadeBlend; // 级联阴影之间的混合系数 1.0为非边缘
+	ShadowMask shadowMask;
 };
 
 struct DirectionalShadowData{
@@ -52,6 +58,9 @@ float FadedShadowStrength(float distance, float scale, float fade){
 // 阴影数据
 ShadowData GetShadowData(Surface surfaceWS){
 	ShadowData shadowData;
+	// 取值在GI里
+	shadowData.shadowMask.distance = false;
+	shadowData.shadowMask.shadows = 1.0;
 	shadowData.strength = FadedShadowStrength(surfaceWS.depth, _ShadowDistanceFadeProp.x, _ShadowDistanceFadeProp.y);
 	shadowData.cascadeBlend = 1.0;
 

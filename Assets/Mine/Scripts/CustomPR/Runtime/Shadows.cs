@@ -51,6 +51,12 @@ public class Shadows
         "_CASCADE_BLEND_SOFT",
         "_CASCADE_BLEND_DITHER",
     };
+    // 阴影遮罩shadow Mask 静态
+    private static string[] shadowMaskKeywords = {
+        "_SHADOW_MASK_DISTANCE",
+    };
+    // 是否使用阴影遮蔽 每帧都需要重新评估
+    private bool useShadowMask;
 
     public void Setup(
         ScriptableRenderContext context, CullingResults cullingResults,
@@ -62,6 +68,7 @@ public class Shadows
         this.shadowSettings = shadowSettings;
 
         this.currentShadowDirectionalLightCount = 0;
+        this.useShadowMask = false;
     }
 
     public void Render()
@@ -78,6 +85,12 @@ public class Shadows
                 32, FilterMode.Bilinear, RenderTextureFormat.Shadowmap
             );
         }
+
+        // shadow mask 设置
+        buffer.BeginSample(bufferName);
+        SetKeywords(shadowMaskKeywords, useShadowMask ? 0 : -1);
+        buffer.EndSample(bufferName);
+        ExecuteBuffer();
     }
 
     /// <summary>
@@ -92,6 +105,9 @@ public class Shadows
             cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds box)
         )
         {
+            LightBakingOutput lightBaking = light.bakingOutput;
+            useShadowMask = lightBaking.lightmapBakeType == LightmapBakeType.Mixed && lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask;
+
             shadowDirectionalLights[currentShadowDirectionalLightCount] = new ShadowDirectionalLight()
             {
                 visibleLightIndex = visibleLightIndex,
