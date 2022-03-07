@@ -11,6 +11,11 @@
 #define UNITY_MATRIX_VP unity_MatrixVP
 #define UNITY_MATRIX_P glstate_matrix_projection
 
+// 只有在SHADOWS_SHADOWMASK被定义 遮挡数据可以自动GPU实例化 所以转换一次
+#if defined(_SHADOW_MASK_DISTANCE)
+	#define SHADOWS_SHADOWMASK
+#endif
+
 // GPU实例化
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 // 空间转换
