@@ -242,13 +242,14 @@ public class Shadows
         float textSize = 2f * cullingSphere.w / tileSize;
         // 采样偏移
         float filterSize = textSize * ((float)shadowSettings.directional.filterMode + 1f) * 1.4142f;
-        cascadeDatas[levelIndex] = new Vector4(1f / cullingSphere.w, filterSize);
 
         // cullingSphere xyz:球心坐标  w:半径
         // 距离要拿来判断片元是否在范围内 所以用平方来比较 减少计算量
         cullingSphere.w -= filterSize; // 上面扩大了采样范围 防止在剔除外采样 缩小范围
         cullingSphere.w *= cullingSphere.w;
         cascadeCullingSpheres[levelIndex] = cullingSphere;
+
+        cascadeDatas[levelIndex] = new Vector4(1f / cullingSphere.w, filterSize);
     }
 
     /// <summary>
