@@ -33,14 +33,25 @@ struct GI {
 };
 
 // 采样shadowMask或者探针里的烘焙阴影数据
-float4 SampleBakedShadows(float2 lightMapUV){
+float4 SampleBakedShadows(float2 lightMapUV, Surface surfaceWS){
 	#if defined(LIGHTMAP_ON)
 		// 光照贴图模式使用ShadowMask
 		return SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, lightMapUV);
 	#else
 		// 探针遮挡数据
-		return unity_ProbesOcclusion;
-		// return 1.0;
+		if(unity_ProbeVolumeParams.x){
+			// 使用了LPPV
+			return SampleProbeOcclusion(
+				TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH),
+				surfaceWS.position, unity_ProbeVolumeWorldToObject,
+				unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z,
+				unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz
+			);
+		}
+		else{
+			return unity_ProbesOcclusion;
+			// return 1.0;
+		}
 	#endif
 }
 
@@ -50,6 +61,7 @@ float3 SampleLightProbe(Surface surfaceWS){
 		return 0.0;
 	#else
 		if (unity_ProbeVolumeParams.x) {
+			// 使用了LPPV
 			return SampleProbeVolumeSH4(
 				TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH),
 				surfaceWS.position, surfaceWS.normal,
@@ -96,7 +108,7 @@ GI GetGI(float2 lightMapUV, Surface surfaceWS){
 	gi.shadowMask.shadows = 1.0;
 	#if defined(_SHADOW_MASK_DISTANCE)
 		gi.shadowMask.distance = true;
-		gi.shadowMask.shadows = SampleBakedShadows(lightMapUV);
+		gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
 	#endif
 
 	return gi;

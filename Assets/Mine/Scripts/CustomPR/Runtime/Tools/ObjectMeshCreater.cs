@@ -50,11 +50,14 @@ public class ObjectMeshCreater : MonoBehaviour
                     positions[i] = matrices[i].GetColumn(3);
                 }
                 var lightProbes = new SphericalHarmonicsL2[1023];
+                // 探针阴影遮挡数据 如使用LPPV的探针
+                var occlusionProbes = new Vector4[1023];
                 LightProbes.CalculateInterpolatedLightAndOcclusionProbes(
-                    positions, lightProbes, null
+                    positions, lightProbes, occlusionProbes
                 );
 
                 block.CopySHCoefficientArraysFrom(lightProbes);
+                block.CopyProbeOcclusionArrayFrom(occlusionProbes);
             }
         }
         Graphics.DrawMeshInstanced(mesh, 0, material, matrices, 1023, block,
