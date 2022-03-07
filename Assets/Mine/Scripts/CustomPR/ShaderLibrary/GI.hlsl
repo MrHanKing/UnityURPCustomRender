@@ -32,12 +32,15 @@ struct GI {
 	ShadowMask shadowMask;
 };
 
+// 采样shadowMask或者探针里的烘焙阴影数据
 float4 SampleBakedShadows(float2 lightMapUV){
-	// 烘焙的阴影只对光照贴图模式有用
 	#if defined(LIGHTMAP_ON)
+		// 光照贴图模式使用ShadowMask
 		return SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, lightMapUV);
 	#else
-		return 1.0;
+		// 探针遮挡数据
+		return unity_ProbesOcclusion;
+		// return 1.0;
 	#endif
 }
 
@@ -91,7 +94,7 @@ GI GetGI(float2 lightMapUV, Surface surfaceWS){
 	gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
 	gi.shadowMask.distance = false;
 	gi.shadowMask.shadows = 1.0;
-	#if defined(LIGHTMAP_ON)
+	#if defined(_SHADOW_MASK_DISTANCE)
 		gi.shadowMask.distance = true;
 		gi.shadowMask.shadows = SampleBakedShadows(lightMapUV);
 	#endif

@@ -88,7 +88,8 @@ public class Shadows
 
         // shadow mask 设置
         buffer.BeginSample(bufferName);
-        SetKeywords(shadowMaskKeywords, useShadowMask ? 0 : -1);
+        var modeEnumIndex = useShadowMask ? 0 : -1;
+        SetKeywords(shadowMaskKeywords, modeEnumIndex);
         buffer.EndSample(bufferName);
         ExecuteBuffer();
     }
@@ -164,8 +165,8 @@ public class Shadows
         buffer.SetGlobalVector(CommonShaderPropertyID.shadowDistanceFadePropId,
         new Vector4(1f / shadowSettings.maxDistance, 1f / shadowSettings.distanceFade, 1f / (1f - f * f)));
 
-        SetKeywords(directionalFilterKeywords, (int)shadowSettings.directional.filterMode);
-        SetKeywords(cascadeBlendKeywords, (int)shadowSettings.directional.cascadeBlendMode);
+        SetKeywords(directionalFilterKeywords, (int)shadowSettings.directional.filterMode - 1);
+        SetKeywords(cascadeBlendKeywords, (int)shadowSettings.directional.cascadeBlendMode - 1);
         buffer.SetGlobalVector(CommonShaderPropertyID.shadowAtlasSizeId, new Vector4(atlasSize, 1f / atlasSize));
         #endregion
 
@@ -180,10 +181,10 @@ public class Shadows
     {
         // 映射枚举 和 shader keyword
         // int enabledIndex = (int)shadowSettings.directional.filterMode - 1;
-        int enabledIndex = modeEnumIndex - 1;
+        // int enabledIndex = modeEnumIndex - 1;
         for (int i = 0; i < keywords.Length; i++)
         {
-            if (i == enabledIndex)
+            if (i == modeEnumIndex)
             {
                 buffer.EnableShaderKeyword(keywords[i]);
             }
