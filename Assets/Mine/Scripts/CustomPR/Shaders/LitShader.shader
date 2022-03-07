@@ -16,6 +16,9 @@
 
         [KeywordEnum(On, Clip, Dither, Off)] _Shadows ("阴影模式", Float) = 0
         [Toggle(_RECEIVE_SHADOWS)] _ReceiveShadows ("表面受阴影影响", Float) = 1
+
+        [NoScaleOffset] _EmissionMap("自发光贴图", 2D) = "white" {}
+        [HDR] _EmissionColor("自发光颜色", Color) = (0.0, 0.0, 0.0, 0.0)
     }
     SubShader
     {

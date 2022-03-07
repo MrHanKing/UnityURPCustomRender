@@ -24,6 +24,8 @@ public static class CommonShaderPropertyID
     public static int metallicId = Shader.PropertyToID("_Metallic");
     // 光滑度
     public static int smoothnessId = Shader.PropertyToID("_Smoothness");
+    // 自发光颜色
+    public static int emissionColorId = Shader.PropertyToID("_EmissionColor");
     // 定向光阴影贴图
     public static int dirShadowAtlasId = Shader.PropertyToID("_DirctionalShadowAtlas");
     // 定向光阴影变换矩阵 worldPos -> 阴影裁剪空间 -> 纹理空间

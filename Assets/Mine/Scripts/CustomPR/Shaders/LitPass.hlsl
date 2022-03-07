@@ -68,7 +68,10 @@ float4 LitPassFragment(Varyings input) : SV_TARGET{
     BRDF brdf = GetBRDF(surface);
 #endif
     GI gi = GetGI(GI_FRAGMENT_DATA(input), surface);
+    //surface 表面数据 brdf 自身漫反射和高光 gi 环境漫反射和高光
     float3 color = GetLighting(surface, brdf, gi);
+
+    color += GetEmission(input.baseUV);
 
     return float4(color, surface.alpha);
 }

@@ -73,6 +73,8 @@ public class CustomLitShaderGUI : ShaderGUI
         this.properties = properties;
         this.materials = materialEditor.targets;
 
+        BakedEmission();
+
         EditorGUILayout.Space();
         showPresets = EditorGUILayout.Foldout(showPresets, "预制模式", true);
         if (showPresets)
@@ -201,6 +203,19 @@ public class CustomLitShaderGUI : ShaderGUI
         foreach (Material m in materials)
         {
             m.SetShaderPassEnabled("ShadowCaster", enabled);
+        }
+    }
+    // 自发光相关配置
+    private void BakedEmission()
+    {
+        EditorGUI.BeginChangeCheck();
+        editor.LightmapEmissionProperty();
+        if (EditorGUI.EndChangeCheck())
+        {
+            foreach (Material m in this.materials)
+            {
+                m.globalIlluminationFlags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+            }
         }
     }
 }

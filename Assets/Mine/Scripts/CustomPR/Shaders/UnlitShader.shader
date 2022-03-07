@@ -2,7 +2,7 @@
 {
     Properties
     {
-        _BaseMap("Texture", 2D) = "white" {}
+        [HDR] _BaseMap("Texture", 2D) = "white" {}
         _BaseColor("基础颜色", Color) = (1.0, 1.0, 1.0, 1.0)
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend 源", Float) = 1
 		[Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend 目标", Float) = 0

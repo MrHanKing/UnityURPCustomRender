@@ -36,4 +36,8 @@ float GetCutoff (float2 baseUV) {
 	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff);
 }
 
+float3 GetEmission (float2 baseUV) {
+	return GetBase(baseUV).rgb;;
+}
+
 #endif
