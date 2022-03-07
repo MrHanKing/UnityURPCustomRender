@@ -21,11 +21,11 @@ int GetDirectionalLightCount () {
 }
 
 DirectionalShadowData GetDirectionalShadowData(int lightIndex, ShadowData shadowdata){
-	DirectionalShadowData resultData;
-	resultData.strength = _DirLightShadowDatas[lightIndex].x * shadowdata.strength;
-	resultData.tileIndex = _DirLightShadowDatas[lightIndex].y + shadowdata.cascadeIndex;
-	resultData.normalBias = _DirLightShadowDatas[lightIndex].z;
-	return resultData;
+	DirectionalShadowData dirShadowData;
+	dirShadowData.strength = _DirLightShadowDatas[lightIndex].x;
+	dirShadowData.tileIndex = _DirLightShadowDatas[lightIndex].y + shadowdata.cascadeIndex;
+	dirShadowData.normalBias = _DirLightShadowDatas[lightIndex].z;
+	return dirShadowData;
 }
 
 Light GetDirectionalLight(int index, Surface surfaceWS, ShadowData shadowdata) {

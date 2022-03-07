@@ -39,7 +39,7 @@ struct ShadowMask{
 // 阴影数据
 struct ShadowData{
 	int cascadeIndex; // 单个光阴影的级联索引
-	float strength; // 阴影采样强度
+	float strength; // 级联阴影采样强度
 	float cascadeBlend; // 级联阴影之间的混合系数 1.0为非边缘
 	ShadowMask shadowMask;
 };
@@ -55,7 +55,7 @@ float FadedShadowStrength(float distance, float scale, float fade){
 	return saturate((1.0 - distance * scale) * fade);
 }
 
-// 阴影数据
+// 阴影数据 这里计算的shadowData.strength 是级联阴影的强度
 ShadowData GetShadowData(Surface surfaceWS){
 	ShadowData shadowData;
 	// 取值在GI里
@@ -78,6 +78,7 @@ ShadowData GetShadowData(Surface surfaceWS){
 				shadowData.strength *= fade;
 				// shadowData.strength = 0.0;
 			}else{
+				// 中间级别的过渡
 				shadowData.cascadeBlend = fade;
 			}
 			break;
@@ -129,31 +130,57 @@ float FilterDirectionalShadow(float3 positionSTS){
 	#endif
 }
 
-// 获取阴影衰减
-float GetDirectionalShadowAttenuation(DirectionalShadowData shadowData, ShadowData globalShadow, Surface surfaceWS){
+// 获取级联阴影 即实时阴影数据
+float GetCascadeShadow(DirectionalShadowData dirShadowData, ShadowData globalShadow, Surface surfaceWS){
+	// 偏移采样
+	float3 normalBias = surfaceWS.normal * (dirShadowData.normalBias * _ShadowCascadeData[globalShadow.cascadeIndex].y);
+	float4 getPos = float4(surfaceWS.position + normalBias, 1.0);
+	float3 positionSTS = mul(_DirShadowMatris[dirShadowData.tileIndex], getPos).xyz;
+	float shadow = FilterDirectionalShadow(positionSTS);
+	// 每一级边缘区域采样混合
+	if(globalShadow.cascadeBlend < 1.0){
+		normalBias = surfaceWS.normal * (dirShadowData.normalBias * _ShadowCascadeData[globalShadow.cascadeIndex + 1].y);
+		getPos = float4(surfaceWS.position + normalBias, 1.0);
+		positionSTS = mul(_DirShadowMatris[dirShadowData.tileIndex + 1], getPos).xyz;
+		shadow = lerp(FilterDirectionalShadow(positionSTS), shadow, globalShadow.cascadeBlend);
+	}
+
+	return shadow;
+}
+// 获得烘焙好的阴影
+float GetBakedShadow (ShadowMask mask) {
+	float shadow = 1.0;
+	if (mask.distance) {
+		shadow = mask.shadows.r;
+	}
+	return shadow;
+}
+// 混合实时阴影和烘培阴影
+float MixBakedAndRealtimeShadows (ShadowData globalShadow, float shadow, float strength) {
+	float baked = GetBakedShadow(globalShadow.shadowMask);
+	if (globalShadow.shadowMask.distance) {
+		// globalShadow.strength 0 说明超过级联阴影采样范围了
+		shadow = lerp(baked, shadow, globalShadow.strength);
+		return lerp(1.0, shadow, strength);
+	}
+	return lerp(1.0, shadow, strength * globalShadow.strength);
+}
+// 获取阴影衰减 1.0表示无阴影 0表示全阴影权重
+float GetDirectionalShadowAttenuation(DirectionalShadowData dirShadowData, ShadowData globalShadow, Surface surfaceWS){
 	#if !defined(_RECEIVE_SHADOWS)
 		return 1.0;
 	#endif
 
-	if(shadowData.strength <= 0.0){
-		return 1.0;
+	float shadow;
+	if(dirShadowData.strength <= 0.0){
+		shadow = 1.0;
 	}
-	// 偏移采样
-	float3 normalBias = surfaceWS.normal * (shadowData.normalBias * _ShadowCascadeData[globalShadow.cascadeIndex].y);
-	float4 getPos = float4(surfaceWS.position + normalBias, 1.0);
-	float3 positionSTS = mul(_DirShadowMatris[shadowData.tileIndex], getPos).xyz;
-	float shadow = FilterDirectionalShadow(positionSTS);
-	// 每一级边缘区域采样混合
-	if(globalShadow.cascadeBlend < 1.0){
-		normalBias = surfaceWS.normal * (shadowData.normalBias * _ShadowCascadeData[globalShadow.cascadeIndex + 1].y);
-		getPos = float4(surfaceWS.position + normalBias, 1.0);
-		positionSTS = mul(_DirShadowMatris[shadowData.tileIndex + 1], getPos).xyz;
-		shadow = lerp(FilterDirectionalShadow(positionSTS), shadow, globalShadow.cascadeBlend);
+	else{
+		shadow = GetCascadeShadow(dirShadowData, globalShadow, surfaceWS);
+		shadow = MixBakedAndRealtimeShadows(globalShadow, shadow, dirShadowData.strength);
 	}
 
-	// 1表示无阴影 0表示全阴影
-	return lerp(1.0, shadow, shadowData.strength);
-	// return shadowData.tileIndex / 4.0;
+	return shadow;
 }
 
 #endif
