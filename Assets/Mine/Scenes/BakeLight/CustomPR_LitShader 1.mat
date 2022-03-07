@@ -9,11 +9,11 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: CustomPR_LitShader 1
   m_Shader: {fileID: 4800000, guid: 727d16b147d7d44f6a47739340d9dbf4, type: 3}
-  m_ShaderKeywords: _RECEIVE_SHADOWS _SHADOWS_ON
+  m_ShaderKeywords: _RECEIVE_SHADOWS _SHADOWS_DITHER _SHADOWS_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -34,14 +34,14 @@ Material:
     m_Floats:
     - _Clipping: 0
     - _Cutoff: 0
-    - _DstBlend: 0
+    - _DstBlend: 10
     - _Metallic: 0
     - _PremulAlpha: 0
     - _ReceiveShadows: 1
-    - _Shadows: 0
+    - _Shadows: 2
     - _Smoothness: 0
-    - _SrcBlend: 1
-    - _ZWrite: 1
+    - _SrcBlend: 5
+    - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     - _Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}

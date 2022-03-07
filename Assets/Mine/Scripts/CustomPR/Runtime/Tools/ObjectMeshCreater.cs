@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class ObjectMeshCreater : MonoBehaviour
 {
@@ -37,7 +38,21 @@ public class ObjectMeshCreater : MonoBehaviour
             block.SetVectorArray(CommonShaderPropertyID.baseColorId, baseColors);
             block.SetFloatArray(CommonShaderPropertyID.metallicId, metallic);
             block.SetFloatArray(CommonShaderPropertyID.smoothnessId, smoothness);
+
+            // 生成光照探针 并计算和传递数据
+            var positions = new Vector3[1023];
+            for (int i = 0; i < matrices.Length; i++)
+            {
+                positions[i] = matrices[i].GetColumn(3);
+            }
+            var lightProbes = new SphericalHarmonicsL2[1023];
+            LightProbes.CalculateInterpolatedLightAndOcclusionProbes(
+                positions, lightProbes, null
+            );
+
+            block.CopySHCoefficientArraysFrom(lightProbes);
         }
-        Graphics.DrawMeshInstanced(mesh, 0, material, matrices, 1023, block);
+        Graphics.DrawMeshInstanced(mesh, 0, material, matrices, 1023, block,
+        ShadowCastingMode.On, true, 0, null, LightProbeUsage.CustomProvided);
     }
 }
