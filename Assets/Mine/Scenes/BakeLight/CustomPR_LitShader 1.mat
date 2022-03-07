@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: CustomPR_LitShader
+  m_Name: CustomPR_LitShader 1
   m_Shader: {fileID: 4800000, guid: 727d16b147d7d44f6a47739340d9dbf4, type: 3}
   m_ShaderKeywords: _RECEIVE_SHADOWS _SHADOWS_ON
   m_LightmapFlags: 4

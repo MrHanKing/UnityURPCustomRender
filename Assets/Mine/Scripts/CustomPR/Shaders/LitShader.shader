@@ -2,6 +2,10 @@
 {
     Properties
     {
+        // Unity 硬编码属性 用于烘培透明度等
+        [HideInInspector] _MainTex("Texture for Lightmap", 2D) = "white" {}
+		[HideInInspector] _Color("Color for Lightmap", Color) = (0.5, 0.5, 0.5, 1.0)
+
         _BaseMap("Texture", 2D) = "white" {}
         _BaseColor("基础颜色", Color) = (0.5, 0.5, 0.5, 1.0)
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend 源", Float) = 1
