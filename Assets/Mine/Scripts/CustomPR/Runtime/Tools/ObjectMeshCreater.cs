@@ -9,6 +9,8 @@ public class ObjectMeshCreater : MonoBehaviour
     Mesh mesh = default;
     [SerializeField]
     Material material = default;
+    [SerializeField]
+    LightProbeProxyVolume lightProbeProxyVolume = null;
 
     // 生成1024个渲染网格
     // 变换矩阵
@@ -39,20 +41,25 @@ public class ObjectMeshCreater : MonoBehaviour
             block.SetFloatArray(CommonShaderPropertyID.metallicId, metallic);
             block.SetFloatArray(CommonShaderPropertyID.smoothnessId, smoothness);
 
-            // 生成光照探针 并计算和传递数据
-            var positions = new Vector3[1023];
-            for (int i = 0; i < matrices.Length; i++)
+            if (!lightProbeProxyVolume)
             {
-                positions[i] = matrices[i].GetColumn(3);
-            }
-            var lightProbes = new SphericalHarmonicsL2[1023];
-            LightProbes.CalculateInterpolatedLightAndOcclusionProbes(
-                positions, lightProbes, null
-            );
+                // 生成光照探针 并计算和传递数据
+                var positions = new Vector3[1023];
+                for (int i = 0; i < matrices.Length; i++)
+                {
+                    positions[i] = matrices[i].GetColumn(3);
+                }
+                var lightProbes = new SphericalHarmonicsL2[1023];
+                LightProbes.CalculateInterpolatedLightAndOcclusionProbes(
+                    positions, lightProbes, null
+                );
 
-            block.CopySHCoefficientArraysFrom(lightProbes);
+                block.CopySHCoefficientArraysFrom(lightProbes);
+            }
         }
         Graphics.DrawMeshInstanced(mesh, 0, material, matrices, 1023, block,
-        ShadowCastingMode.On, true, 0, null, LightProbeUsage.CustomProvided);
+        ShadowCastingMode.On, true, 0, null,
+        lightProbeProxyVolume ? LightProbeUsage.UseProxyVolume : LightProbeUsage.CustomProvided,
+        lightProbeProxyVolume);
     }
 }

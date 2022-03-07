@@ -3037,6 +3037,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1942784741}
   - component: {fileID: 1942784740}
+  - component: {fileID: 1942784742}
   m_Layer: 0
   m_Name: DymaicObject
   m_TagString: Untagged
@@ -3058,6 +3059,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
   material: {fileID: 2100000, guid: cda02ceb7ebae42f59c946752b64502d, type: 2}
+  lightProbeProxyVolume: {fileID: 1942784742}
 --- !u!4 &1942784741
 Transform:
   m_ObjectHideFlags: 0
@@ -3072,6 +3074,25 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!259 &1942784742
+LightProbeProxyVolume:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1942784739}
+  m_Enabled: 1
+  m_BoundingBoxMode: 2
+  m_ResolutionX: 2
+  m_ResolutionY: 2
+  m_ResolutionZ: 2
+  m_ResolutionProbesPerUnit: 0.25
+  m_BoundingBoxSize: {x: 20, y: 20, z: 20}
+  m_BoundingBoxOrigin: {x: 0, y: 0, z: 0}
+  m_ResolutionMode: 0
+  m_ProbePositionMode: 0
+  m_RefreshMode: 0
+  m_QualityMode: 1
 --- !u!1 &1962607317
 GameObject:
   m_ObjectHideFlags: 0
