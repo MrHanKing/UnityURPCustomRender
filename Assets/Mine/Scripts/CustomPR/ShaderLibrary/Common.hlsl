@@ -12,7 +12,7 @@
 #define UNITY_MATRIX_P glstate_matrix_projection
 
 // 只有在SHADOWS_SHADOWMASK被定义 遮挡数据可以自动GPU实例化 所以转换一次
-#if defined(_SHADOW_MASK_DISTANCE)
+#if defined(_SHADOW_MASK_ALWAYS) || defined(_SHADOW_MASK_DISTANCE)
 	#define SHADOWS_SHADOWMASK
 #endif
 

@@ -104,9 +104,13 @@ float3 SampleLightMap(float2 lightMapUV){
 GI GetGI(float2 lightMapUV, Surface surfaceWS){
 	GI gi;
 	gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
+	gi.shadowMask.alwaysMask = false;
 	gi.shadowMask.distance = false;
 	gi.shadowMask.shadows = 1.0;
-	#if defined(_SHADOW_MASK_DISTANCE)
+	#if defined(_SHADOW_MASK_ALWAYS)
+		gi.shadowMask.alwaysMask = true;
+		gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
+	#elif defined(_SHADOW_MASK_DISTANCE)
 		gi.shadowMask.distance = true;
 		gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
 	#endif

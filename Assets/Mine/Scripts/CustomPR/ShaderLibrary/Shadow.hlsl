@@ -32,8 +32,9 @@ CBUFFER_START(_CustomShadow)
 CBUFFER_END
 
 struct ShadowMask{
+	bool alwaysMask; // shadowMask模式 静态物体优先使用烘焙阴影 不计算实时了
 	bool distance; // 是否启用了distance shadowMask
-	float4 shadows;
+	float4 shadows; // GI 环境阴影
 };
 
 // 阴影数据
@@ -48,6 +49,7 @@ struct DirectionalShadowData{
 	float strength; // 阴影强度
 	int tileIndex; // 阴影的纹理区域Index
 	float normalBias; // 阴影法线偏移
+	int shadowMaskChannel; // 阴影贴图在第几个通道
 };
 
 // 淡出阴影强度
@@ -58,6 +60,7 @@ float FadedShadowStrength(float distance, float scale, float fade){
 // 阴影数据 这里计算的shadowData.strength 是级联阴影的强度
 ShadowData GetShadowData(Surface surfaceWS){
 	ShadowData shadowData;
+	shadowData.shadowMask.alwaysMask = false;
 	// 取值在GI里
 	shadowData.shadowMask.distance = false;
 	shadowData.shadowMask.shadows = 1.0;
@@ -148,22 +151,30 @@ float GetCascadeShadow(DirectionalShadowData dirShadowData, ShadowData globalSha
 	return shadow;
 }
 // 获得烘焙好的阴影
-float GetBakedShadow (ShadowMask mask) {
+float GetBakedShadow (ShadowMask mask, int channel) {
 	float shadow = 1.0;
-	if (mask.distance) {
-		shadow = mask.shadows.r;
+	if (mask.alwaysMask || mask.distance) {
+		if(channel >= 0){
+			shadow = mask.shadows[channel];
+		}
 	}
 	return shadow;
 }
-float GetBakedShadow (ShadowMask mask, float strength) {
-	if (mask.distance) {
-		return lerp(1.0, GetBakedShadow(mask), strength);
+float GetBakedShadow (ShadowMask mask, float strength, int channel) {
+	if (mask.alwaysMask || mask.distance) {
+		return lerp(1.0, GetBakedShadow(mask, channel), strength);
 	}
 	return 1.0;
 }
 // 混合实时阴影和烘培阴影
-float MixBakedAndRealtimeShadows (ShadowData globalShadow, float shadow, float strength) {
-	float baked = GetBakedShadow(globalShadow.shadowMask);
+float MixBakedAndRealtimeShadows (ShadowData globalShadow, float shadow, float strength, int shadowMaskChannel) {
+	float baked = GetBakedShadow(globalShadow.shadowMask, shadowMaskChannel);
+	if (globalShadow.shadowMask.alwaysMask){
+		shadow = lerp(1.0, shadow, globalShadow.strength);
+		shadow = min(baked, shadow);
+		return lerp(1.0, shadow, strength);
+	}
+
 	if (globalShadow.shadowMask.distance) {
 		// globalShadow.strength 0 说明超过级联阴影采样范围了
 		shadow = lerp(baked, shadow, globalShadow.strength);
@@ -179,11 +190,11 @@ float GetDirectionalShadowAttenuation(DirectionalShadowData dirShadowData, Shado
 
 	float shadow;
 	if(dirShadowData.strength * globalShadow.strength <= 0.0){
-		shadow = GetBakedShadow(globalShadow.shadowMask, abs(dirShadowData.strength));
+		shadow = GetBakedShadow(globalShadow.shadowMask, abs(dirShadowData.strength), dirShadowData.shadowMaskChannel);
 	}
 	else{
 		shadow = GetCascadeShadow(dirShadowData, globalShadow, surfaceWS);
-		shadow = MixBakedAndRealtimeShadows(globalShadow, shadow, dirShadowData.strength);
+		shadow = MixBakedAndRealtimeShadows(globalShadow, shadow, dirShadowData.strength, dirShadowData.shadowMaskChannel);
 	}
 
 	return shadow;

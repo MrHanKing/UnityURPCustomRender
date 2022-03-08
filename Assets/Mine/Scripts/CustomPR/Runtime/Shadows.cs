@@ -53,7 +53,8 @@ public class Shadows
     };
     // 阴影遮罩shadow Mask 静态
     private static string[] shadowMaskKeywords = {
-        "_SHADOW_MASK_DISTANCE",
+        "_SHADOW_MASK_ALWAYS", // quality面板选择shadowMask
+        "_SHADOW_MASK_DISTANCE", // quality面板选择distance ShadowMask
     };
     // 是否使用阴影遮蔽 每帧都需要重新评估
     private bool useShadowMask;
@@ -88,7 +89,7 @@ public class Shadows
 
         // shadow mask 设置
         buffer.BeginSample(bufferName);
-        var modeEnumIndex = useShadowMask ? 0 : -1;
+        var modeEnumIndex = useShadowMask ? (QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 0 : 1) : -1;
         SetKeywords(shadowMaskKeywords, modeEnumIndex);
         buffer.EndSample(bufferName);
         ExecuteBuffer();
@@ -99,14 +100,26 @@ public class Shadows
     /// </summary>
     /// <param name="light"></param>
     /// <param name="visibleLightIndex"></param>
-    public Vector3 ReserveDirectionalShadows(Light light, int visibleLightIndex)
+    public Vector4 ReserveDirectionalShadows(Light light, int visibleLightIndex)
     {
         if (currentShadowDirectionalLightCount < maxShadowDirectionalLightCount &&
             !IgnoreShadow(light)
         )
         {
+            // 阴影在第几个通道
+            float maskCannel = -1;
             LightBakingOutput lightBaking = light.bakingOutput;
-            useShadowMask = lightBaking.lightmapBakeType == LightmapBakeType.Mixed && lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask;
+            if (lightBaking.lightmapBakeType == LightmapBakeType.Mixed && lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask)
+            {
+                useShadowMask = true;
+                maskCannel = lightBaking.occlusionMaskChannel;
+            }
+
+            if (!cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds box))
+            {
+                // 无实时阴影的时候 渲染烘焙阴影
+                return new Vector4(-light.shadowStrength, 0f, 0f, maskCannel);
+            }
 
             shadowDirectionalLights[currentShadowDirectionalLightCount] = new ShadowDirectionalLight()
             {
@@ -114,24 +127,14 @@ public class Shadows
                 slopeScaleBias = light.shadowBias,
                 nearPlaneOffset = light.shadowNearPlane
             };
-
-            Vector3 result;
-            if (!cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds box))
-            {
-                // 无实时阴影的时候 渲染烘焙阴影
-                result = new Vector3(-light.shadowStrength, 0f, 0f);
-            }
-            else
-            {
-                result = new Vector3(light.shadowStrength, currentShadowDirectionalLightCount * maxShadowCascades, light.shadowNormalBias);
-
-            }
+            var result = new Vector4(light.shadowStrength, currentShadowDirectionalLightCount * maxShadowCascades,
+            light.shadowNormalBias, maskCannel);
 
             currentShadowDirectionalLightCount += 1;
             return result;
         }
 
-        return Vector3.zero;
+        return new Vector4(0f, 0f, 0f, -1f);
     }
 
     public void Cleanup()
