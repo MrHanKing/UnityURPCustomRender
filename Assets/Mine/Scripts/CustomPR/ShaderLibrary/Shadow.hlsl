@@ -155,6 +155,12 @@ float GetBakedShadow (ShadowMask mask) {
 	}
 	return shadow;
 }
+float GetBakedShadow (ShadowMask mask, float strength) {
+	if (mask.distance) {
+		return lerp(1.0, GetBakedShadow(mask), strength);
+	}
+	return 1.0;
+}
 // 混合实时阴影和烘培阴影
 float MixBakedAndRealtimeShadows (ShadowData globalShadow, float shadow, float strength) {
 	float baked = GetBakedShadow(globalShadow.shadowMask);
@@ -172,8 +178,8 @@ float GetDirectionalShadowAttenuation(DirectionalShadowData dirShadowData, Shado
 	#endif
 
 	float shadow;
-	if(dirShadowData.strength <= 0.0){
-		shadow = 1.0;
+	if(dirShadowData.strength * globalShadow.strength <= 0.0){
+		shadow = GetBakedShadow(globalShadow.shadowMask, abs(dirShadowData.strength));
 	}
 	else{
 		shadow = GetCascadeShadow(dirShadowData, globalShadow, surfaceWS);

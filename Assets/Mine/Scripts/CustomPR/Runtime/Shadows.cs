@@ -102,8 +102,7 @@ public class Shadows
     public Vector3 ReserveDirectionalShadows(Light light, int visibleLightIndex)
     {
         if (currentShadowDirectionalLightCount < maxShadowDirectionalLightCount &&
-            !IgnoreShadow(light) &&
-            cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds box)
+            !IgnoreShadow(light)
         )
         {
             LightBakingOutput lightBaking = light.bakingOutput;
@@ -116,7 +115,17 @@ public class Shadows
                 nearPlaneOffset = light.shadowNearPlane
             };
 
-            var result = new Vector3(light.shadowStrength, currentShadowDirectionalLightCount * maxShadowCascades, light.shadowNormalBias);
+            Vector3 result;
+            if (!cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds box))
+            {
+                // 无实时阴影的时候 渲染烘焙阴影
+                result = new Vector3(-light.shadowStrength, 0f, 0f);
+            }
+            else
+            {
+                result = new Vector3(light.shadowStrength, currentShadowDirectionalLightCount * maxShadowCascades, light.shadowNormalBias);
+
+            }
 
             currentShadowDirectionalLightCount += 1;
             return result;
