@@ -51,6 +51,8 @@
             #pragma multi_compile _ _DIRECTIONAL_SHADOW_PCF3 _DIRECTIONAL_SHADOW_PCF5 _DIRECTIONAL_SHADOW_PCF7
             #pragma multi_compile _ _CASCADE_BLEND_SOFT _CASCADE_BLEND_DITHER
             #pragma multi_compile _ _SHADOW_MASK_ALWAYS _SHADOW_MASK_DISTANCE
+            // LOD
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             // 光照贴图
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_instancing
@@ -73,6 +75,8 @@
             #pragma target 3.5
             #pragma shader_feature _ _SHADOWS_CLIP _SHADOWS_DITHER
             #pragma shader_feature _PREMULTI_ALPHA
+            // LOD
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma vertex ShadowCasterPassVertex
             #pragma fragment ShadowCasterPassFragment
             #include "ShadowCasterPass.hlsl"

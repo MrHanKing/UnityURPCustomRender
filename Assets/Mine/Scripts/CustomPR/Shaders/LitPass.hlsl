@@ -44,6 +44,9 @@ Varyings LitPassVertex(Attributes input) {
 
 float4 LitPassFragment(Varyings input) : SV_TARGET{
     UNITY_SETUP_INSTANCE_ID(input);
+#if defined(LOD_FADE_CROSSFADE)
+		ClipLOD(input.positionCS.xy, unity_LODFade.x);
+#endif
     float4 resultColor = GetBase(input.baseUV);
 
 #if defined(_CLIPPING)
