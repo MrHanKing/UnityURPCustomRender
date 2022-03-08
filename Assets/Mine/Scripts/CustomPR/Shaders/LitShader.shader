@@ -23,6 +23,8 @@
 
         [NoScaleOffset] _EmissionMap("自发光贴图", 2D) = "white" {}
         [HDR] _EmissionColor("自发光颜色", Color) = (0.0, 0.0, 0.0, 0.0)
+
+        _Fresnel ("菲涅尔强度", Range(0, 1)) = 1
     }
     SubShader
     {

@@ -63,6 +63,7 @@ float4 LitPassFragment(Varyings input) : SV_TARGET{
     surface.metallic = GetMetallic(input.baseUV);
     surface.smoothness = GetSmoothness(input.baseUV);
     surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
+    surface.fresnelStrength = GetFresnel(input.baseUV);
     // 噪声采样抖动值
     surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
 #if defined(_PREMULTI_ALPHA)
@@ -70,7 +71,7 @@ float4 LitPassFragment(Varyings input) : SV_TARGET{
 #else
     BRDF brdf = GetBRDF(surface);
 #endif
-    GI gi = GetGI(GI_FRAGMENT_DATA(input), surface);
+    GI gi = GetGI(GI_FRAGMENT_DATA(input), surface, brdf);
     //surface 表面数据 brdf 自身漫反射和高光 gi 环境漫反射和高光
     float3 color = GetLighting(surface, brdf, gi);
 

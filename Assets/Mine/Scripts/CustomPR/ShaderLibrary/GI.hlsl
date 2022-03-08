@@ -2,6 +2,7 @@
 #define CUSTOM_GI_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
@@ -9,8 +10,12 @@ SAMPLER(samplerunity_Lightmap);
 TEXTURE2D(unity_ShadowMask);
 SAMPLER(samplerunity_ShadowMask);
 
+// 探针球协采样
 TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
 SAMPLER(samplerunity_ProbeVolumeSH);
+// 环境高光采样
+TEXTURECUBE(unity_SpecCube0);
+SAMPLER(samplerunity_SpecCube0);
 
 #if defined(LIGHTMAP_ON)
 	#define GI_ATTRIBUTE_DATA float2 lightMapUV : TEXCOORD1;
@@ -27,10 +32,24 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 
 // 环境光
 struct GI {
+	// 环境漫反射颜色
 	float3 diffuse;
+	// 环境高光颜色
+	float3 specular;
 	// 在烘焙数据采样
 	ShadowMask shadowMask;
 };
+
+// 采样环境 环境cubeMap
+float3 SampleEnvironment (Surface surfaceWS, BRDF brdf) {
+	float3 uvw = reflect(-surfaceWS.viewDirection, surfaceWS.normal);
+	// 根据感知粗糙度获取LOD级别
+	float mip = PerceptualRoughnessToMipmapLevel(brdf.perceptualRoughness);
+	float4 environment = SAMPLE_TEXTURECUBE_LOD(
+		unity_SpecCube0, samplerunity_SpecCube0, uvw, mip
+	);
+	return environment.rgb;
+}
 
 // 采样shadowMask或者探针里的烘焙阴影数据
 float4 SampleBakedShadows(float2 lightMapUV, Surface surfaceWS){
@@ -101,9 +120,10 @@ float3 SampleLightMap(float2 lightMapUV){
 	#endif
 }
 
-GI GetGI(float2 lightMapUV, Surface surfaceWS){
+GI GetGI(float2 lightMapUV, Surface surfaceWS, BRDF brdf){
 	GI gi;
 	gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
+	gi.specular = SampleEnvironment(surfaceWS, brdf);
 	gi.shadowMask.alwaysMask = false;
 	gi.shadowMask.distance = false;
 	gi.shadowMask.shadows = 1.0;

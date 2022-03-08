@@ -33,7 +33,7 @@ float3 GetLighting (Surface surfaceWS, BRDF brdf, GI gi) {
 	// return gi.shadowMask.shadows.rgb;
 
 	// 间接光的颜色也受brdf的漫反射颜色影响
-    float3 outColor = gi.diffuse * brdf.diffuse;
+    float3 outColor = IndirectBRDF(surfaceWS, brdf, gi.diffuse, gi.specular);
 	for (int i = 0; i < GetDirectionalLightCount(); i++) {
 		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
 		outColor += GetLighting(surfaceWS, brdf, light);
