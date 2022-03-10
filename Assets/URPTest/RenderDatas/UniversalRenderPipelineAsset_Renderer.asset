@@ -29,8 +29,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
   m_Name: UniversalRenderPipelineAsset_Renderer
   m_EditorClassIdentifier: 
-  m_RendererFeatures: []
-  m_RendererFeatureMap: 
+  m_RendererFeatures:
+  - {fileID: 7938544454402534789}
+  m_RendererFeatureMap: 856d4ffe1e602b6e
   postProcessData: {fileID: 11400000, guid: 814b062717005428c8b112f022b1ac4c, type: 2}
   shaders:
     blitPS: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
@@ -53,3 +54,20 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
+--- !u!114 &7938544454402534789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34f1f7dbbe9c04135a855061c7dd82f0, type: 3}
+  m_Name: NewColorEffectBlurFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  passSettings:
+    renderPassEvent: 500
+    downsample: 1
+    blurStrength: 6
